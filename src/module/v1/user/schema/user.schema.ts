@@ -50,6 +50,9 @@ export class User {
   @Prop({ default: false })
   deactivate: boolean;
 
+  @Prop({ default: false })
+  driverAvailability: boolean;
+
   @Prop({ default: 0 })
   wallet: number;
 
