@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import e from 'express';
 import { Observable, map } from 'rxjs';
-import { ResponseMessageKey } from '../decorator/response.decorator';
+import { ResponseMessageKey } from '../decorators/response.decorator';
 
 export interface Response<T> {
   data: T;
