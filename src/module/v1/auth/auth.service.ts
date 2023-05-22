@@ -7,9 +7,11 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
-import { async } from 'rxjs';
 import { OtpEnum } from 'src/common/constants/otp.enum';
-import { generateIdentifier } from 'src/common/utils/uniqueId';
+import {
+  generateIdentifier,
+  randomFourDigitNumber,
+} from 'src/common/utils/uniqueId';
 import { OtpService } from '../otp/otp.service';
 import { OtpDocument } from '../otp/schema/otp.schema';
 import { TokenService } from '../token/token.service';
@@ -19,6 +21,7 @@ import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordResetDto } from './dto/password.dto';
 import { IAuthResponse } from './interface/auth.interface';
+import { RoleEnum } from '../../../common/constants/user.constants';
 
 @Injectable()
 export class AuthService {
@@ -49,6 +52,33 @@ export class AuthService {
       generator: generateIdentifier(),
     });
     await this.tokenService.create({ user: user._id, token: accessToken });
+    await this.otpService.create(user.email, OtpEnum.EMAIL);
+    return {
+      user,
+      accessToken,
+    };
+  }
+
+  async registerRider(
+    requestPayload: Readonly<CreateUserDto>,
+  ): Promise<IAuthResponse> {
+    const { password } = requestPayload;
+    const role = RoleEnum.RIDER;
+    const hash = await this.hashPassword(password);
+    const user = await this.userService.create({
+      role: role,
+      ...requestPayload,
+      password: hash,
+    });
+
+    const accessToken = this.jwtService.sign({
+      _id: user._id,
+      role: user.role,
+      generator: generateIdentifier(),
+    });
+
+    await this.tokenService.create({ user: user._id, token: accessToken });
+    await this.otpService.create(user.email, OtpEnum.EMAIL);
     return {
       user,
       accessToken,
@@ -85,7 +115,7 @@ export class AuthService {
   async checkEmail(email: string): Promise<OtpDocument> {
     const user = await this.userModel.findOne({ email });
     if (user) {
-      throw new BadRequestException('This email already exist in figur');
+      throw new BadRequestException('This email already exist in expressRyder');
     }
     return;
   }

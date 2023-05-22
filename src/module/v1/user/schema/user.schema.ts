@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 import { GenderEnum, RoleEnum } from 'src/common/constants/user.constants';
 import { Account } from './account.schema';
 import { Kyc } from './kyc.schema';
-import { Vehicle } from "./vehicle.schema";
+import { Vehicle } from './vehicle.schema';
 
 export type UserDocument = User &
   Document & {
@@ -56,17 +56,17 @@ export class User {
   @Prop({ default: 0 })
   wallet: number;
 
-  @Prop({ default: {} })
+  @Prop({ default: {}, required: false })
   kyc: Kyc;
 
-  @Prop({ default: {} })
+  @Prop({ default: {}, required: false })
   vehicle: Vehicle;
 
-  @Prop({ default: [] })
+  @Prop({ default: [], required: false })
   tokens: string[];
 
-  @Prop({ default: [] })
-  account: Account[];
+  @Prop({ default: {}, required: false })
+  account: Account;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

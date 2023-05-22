@@ -1,12 +1,12 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
-import { HttpExceptionFilter } from './common/filters/filter';
 import { ValidationPipe } from '@nestjs/common';
 import { environment } from './common/config/environment';
-import { TransformationInterceptor } from './common/interceptors/response.interceptor';
 import { RequestGuard } from './common/utils/guards';
 import helmet from 'helmet';
+import { TransformationInterceptor } from "./common/interceptor/response.interceptor";
+import { TimeoutInterceptor } from "./common/interceptor/timeout.interceptor";
+import { HttpExceptionFilter } from "./common/filter/filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });

@@ -6,17 +6,33 @@ import {
   Patch,
   Query,
   Request,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { UserByEmailDto } from './dto/create-user.dto';
-import { ChangePasswordDto, UpdateUserDto } from './dto/update-user.dto';
+import {
+  ChangePasswordDto,
+  SwitchAvailabilityDto,
+  UpdateUserDto,
+} from './dto/update-user.dto';
 import { UserDocument } from './schema/user.schema';
 import { UserService } from './user.service';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { ResponseMessage } from '../../../common/decorators/response.decorator';
-import { LOGGED_OUT, PASSWORD_UPDATED, RoleEnum, USER_UPDATED } from "../../../common/constants/user.constants";
+import {
+  AVAILABILITY_UPDATED,
+  KYC_BANK_UPDATED,
+  LOGGED_OUT,
+  PASSWORD_UPDATED,
+  RoleEnum,
+  USER_UPDATED,
+  VEHICLE_UPDATED
+} from "../../../common/constants/user.constants";
+import { ResponseMessage } from '../../../common/decorator/response.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('user')
 export class UserController {
@@ -81,5 +97,54 @@ export class UserController {
   @Roles(RoleEnum.SUPER_ADMIN)
   async updateSpecific(@Body() updateUserDto: UpdateUserDto, @Request() req) {
     return await this.userService.update(updateUserDto._id, updateUserDto);
+  }
+
+  @Public()
+  @ResponseMessage(VEHICLE_UPDATED)
+  @Patch('vehicle/:id')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
+  async updateVehicle(
+    @Param('id') id: string,
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+    },
+    @Body() requestData,
+  ) {
+    requestData = JSON.parse(JSON.stringify(requestData));
+    return await this.userService.updateVehicle(id, requestData, files);
+  }
+
+  @Public()
+  @ResponseMessage(KYC_BANK_UPDATED)
+  @Patch('kyc/bank/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'front', maxCount: 1 },
+      { name: 'back', maxCount: 1 },
+      { name: 'selfie', maxCount: 1 },
+    ]),
+  )
+  async updateKycBank(
+    @Param('id') id: string,
+    @UploadedFiles()
+    files: {
+      front?: Express.Multer.File[];
+      back?: Express.Multer.File[];
+      selfie?: Express.Multer.File[];
+    },
+    @Body() requestData,
+  ) {
+    requestData = JSON.parse(JSON.stringify(requestData));
+    return await this.userService.updateKycBank(id, requestData, files);
+  }
+
+  @ResponseMessage(AVAILABILITY_UPDATED)
+  @Patch('online/offline/:id')
+  async switchAvailability(
+    @Param('id') id: string,
+    @Body() request: SwitchAvailabilityDto,
+  ) {
+    return await this.userService.switchAvailability(id, request);
   }
 }

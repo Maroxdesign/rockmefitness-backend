@@ -1,16 +1,10 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { OTP_SENT } from 'src/common/constants/otp.constants';
 import { OtpEnum } from 'src/common/constants/otp.enum';
 import {
   FORGOT_PWD_RESET,
   LOGGED_IN,
-  RoleEnum,
+  RIDER_CREATED,
   USER_CREATED,
 } from 'src/common/constants/user.constants';
 import { Public } from 'src/common/decorator/public.decorator';
@@ -30,12 +24,21 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Post()
+  @Post('customer/register')
   @ResponseMessage(USER_CREATED)
   async register(
     @Body() requestPayload: CreateUserDto,
   ): Promise<IAuthResponse> {
     return await this.authService.register(requestPayload);
+  }
+
+  @Public()
+  @Post('rider/register')
+  @ResponseMessage(RIDER_CREATED)
+  async registerRider(
+    @Body() requestPayload: CreateUserDto,
+  ): Promise<IAuthResponse> {
+    return await this.authService.registerRider(requestPayload);
   }
 
   @Public()
@@ -47,19 +50,7 @@ export class AuthController {
   ): Promise<IAuthResponse> {
     const data = await this.authService.login(requestPayload);
 
-    const user = JSON.parse(JSON.stringify(data));
-    if (
-      req?.headers?.origin?.includes('console') &&
-      user.user.role === RoleEnum.CUSTOMER
-    ) {
-      throw new UnauthorizedException(
-        'You are not authorized to login on console',
-      );
-    }
-
-    delete user.user.password;
-    delete user.user.pin;
-    return user;
+    return JSON.parse(JSON.stringify(data));
   }
 
   @Public()

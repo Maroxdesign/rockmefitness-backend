@@ -6,7 +6,6 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 
@@ -22,11 +21,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsBoolean()
   @IsOptional()
   deactivate?: boolean;
-
-  // @IsOptional()
-  // @ValidateNested()
-  // @Type(() => AddressDto)
-  // address?: AddressDto;
 }
 
 export class ChangePasswordDto {
@@ -37,4 +31,9 @@ export class ChangePasswordDto {
   @MinLength(4)
   @MaxLength(20)
   newPassword: string;
+}
+
+export class SwitchAvailabilityDto {
+  @IsBoolean()
+  driverAvailability?: boolean;
 }

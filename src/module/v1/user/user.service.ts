@@ -13,11 +13,16 @@ import { CreateUserDto, TokenDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schema/user.schema';
 import { QueryDto } from './dto/query.dto';
+import { TokenService } from '../token/token.service';
+import { SpacesService } from '../spaces/spaces.service';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
-
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private tokenService: TokenService,
+    private spacesService: SpacesService,
+  ) {}
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
       // await this.sendInBlue(createUserDto);
@@ -448,4 +453,88 @@ export class UserService {
 
     return { startDate, endDate, data };
   };
+
+  async updateVehicle(id, requestData, files = null) {
+    const { carModel, manufactureYear, plateNumber, color } = requestData;
+
+    const [imageUrl] = await Promise.all([
+      this.spacesService.uploadFile(files?.image?.length > 0 && files.image[0]),
+    ]);
+
+    const uploadUrls = {
+      'vehicle.image': imageUrl,
+    };
+
+    const queryParams = {
+      'vehicle.carModel': carModel,
+      'vehicle.manufactureYear': manufactureYear,
+      'vehicle.plateNumber': plateNumber,
+      'vehicle.color': color,
+    };
+
+    const data = { ...queryParams, ...uploadUrls };
+
+    try {
+      const vehicle: any = await this.userModel.findByIdAndUpdate(id, data, {
+        new: true,
+      });
+
+      if (!vehicle) throw new NotFoundException('Vehicle not found');
+
+      return vehicle;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async updateKycBank(id, requestData, files = null) {
+    const { type, bankName, accountNumber, accountType, accountName } =
+      requestData;
+
+    const [frontUrl, backUrl, selfieUrl] = await Promise.all([
+      this.spacesService.uploadFile(files?.front?.length > 0 && files.front[0]),
+      this.spacesService.uploadFile(files?.back?.length > 0 && files.back[0]),
+      this.spacesService.uploadFile(
+        files?.selfie?.length > 0 && files.selfie[0],
+      ),
+    ]);
+
+    const uploadUrls = {
+      'kyc.front': frontUrl,
+      'kyc.back': backUrl,
+      'kyc.selfie': selfieUrl,
+    };
+
+    const queryParams = {
+      'kyc.type': type,
+      'account.bankName': bankName,
+      'account.accountNumber': accountNumber,
+      'account.accountName': accountName,
+      'account.accountType': accountType,
+    };
+
+    const data = { ...queryParams, ...uploadUrls };
+
+    try {
+      const kycBank: any = await this.userModel.findByIdAndUpdate(id, data, {
+        new: true,
+      });
+
+      if (!kycBank) throw new NotFoundException('Kyc&Bank not found');
+
+      return kycBank;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async switchAvailability(id, request): Promise<UserDocument> {
+    const user = await this.userModel.findByIdAndUpdate(id, request, {
+      new: true,
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
 }

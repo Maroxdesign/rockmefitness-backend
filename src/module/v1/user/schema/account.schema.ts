@@ -4,17 +4,17 @@ import { Document } from 'mongoose';
 export type AccountDocument = Account & Document;
 @Schema({ _id: false })
 export class Account {
-  @Prop()
-  bankName: string;
+  @Prop({ default: null })
+  bankName?: string;
 
-  @Prop()
-  accountNumber: string;
+  @Prop({ default: null })
+  accountNumber?: string;
 
-  @Prop()
-  accountName: string;
+  @Prop({ default: null })
+  accountName?: string;
 
-  @Prop()
-  type: string;
+  @Prop({ default: null })
+  accountType?: string;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

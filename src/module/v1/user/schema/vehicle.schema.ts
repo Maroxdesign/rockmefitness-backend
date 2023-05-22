@@ -4,22 +4,19 @@ import { Document } from 'mongoose';
 export type VehicleDocument = Vehicle & Document;
 @Schema({ _id: false })
 export class Vehicle {
-  @Prop()
+  @Prop({ default: null })
   image: string;
 
-  @Prop()
-  name: string;
-
-  @Prop()
+  @Prop({ default: null })
   carModel: string;
 
-  @Prop()
+  @Prop({ default: null })
   manufactureYear: string;
 
-  @Prop()
+  @Prop({ default: null })
   plateNumber: string;
 
-  @Prop()
+  @Prop({ default: null })
   color: string;
 }
 

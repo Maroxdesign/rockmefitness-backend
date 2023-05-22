@@ -10,6 +10,15 @@ function randomCharacterFromArray(array: any) {
   return array[floor(random() * array.length)];
 }
 
+export function randomFourDigitNumber() {
+  let result = 0;
+  for (let i = 0; i < 4; i++) {
+    const digit = floor(random() * 10);
+    result += digit;
+  }
+  return result;
+}
+
 const identifiers: any[] = [];
 
 export const generateIdentifier: any = () => {

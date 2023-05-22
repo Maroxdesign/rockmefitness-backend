@@ -1,7 +1,6 @@
 import {
   IsEmail,
   IsOptional,
-  IsPositive,
   IsString,
   Length,
   MaxLength,
@@ -18,9 +17,6 @@ export class CreateUserDto {
   lastName: string;
 
   @IsString()
-  dialCode: string;
-
-  @IsString()
   @Length(10, 11)
   phone: string;
 
@@ -32,12 +28,15 @@ export class CreateUserDto {
   role: string;
 
   @IsString()
-  @MinLength(4)
+  @MinLength(8)
   @MaxLength(20)
   password: string;
 
   @IsString()
-  country: string;
+  city: string;
+
+  @IsString()
+  gender: string;
 }
 
 export class UserByEmailDto {
@@ -52,4 +51,9 @@ export class TokenDto {
   @IsString()
   @IsOptional()
   user: string;
+}
+
+
+export class Vehicle {
+  
 }

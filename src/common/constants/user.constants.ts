@@ -8,13 +8,20 @@ export const FORGOT_PWD_RESET = 'Password Created. Login with new password.';
 export const PASSWORD_UPDATED =
   'Password updated successfully and should be used on next login.';
 
+export const VEHICLE_UPDATED = 'Vehicle Information Updated';
+export const KYC_BANK_UPDATED = 'KYC & Bank Information Updated';
+export const AVAILABILITY_UPDATED = 'Availability Updated';
+
+export const RIDER_CREATED = 'Rider Created';
+export const RIDER_UPDATED = 'Rider Updated';
+
 export enum RoleEnum {
   CUSTOMER = 'CUSTOMER',
-  SUPER_ADMIN = 'SUPER_ADMIN',
   RIDER = 'RIDER',
+  SUPER_ADMIN = 'SUPER_ADMIN',
 }
 
 export enum GenderEnum {
-  MALE = 'MALE',
   FEMALE = 'FEMALE',
+  MALE = 'MALE',
 }
