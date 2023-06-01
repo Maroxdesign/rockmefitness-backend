@@ -11,6 +11,7 @@ import { TokenModule } from './module/v1/token/token.module';
 import { UserModule } from './module/v1/user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SupportModule } from './module/v1/support/support.module';
+import { RatingModule } from './module/v1/rating/rating.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { SupportModule } from './module/v1/support/support.module';
     OtpModule,
     MailModule,
     TokenModule,
-    SupportModule
+    SupportModule,
+    RatingModule
   ],
   controllers: [],
   providers: [AppService],
