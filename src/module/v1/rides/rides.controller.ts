@@ -14,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { Response } from 'express';
 import { UpdateRideDto } from './dto/update-ride.dto';
+import { GetDeliveryAmountDto } from './dto/get-delivery-amount.dto';
 
 @Controller('rides')
 export class RidesController {
@@ -61,6 +62,20 @@ export class RidesController {
       success: true,
       data: rides,
       message: 'Rides fetched successfully',
+    });
+  }
+
+  @Post('delivery-price')
+  async getDeliveryPrice(
+    @Body() payload: GetDeliveryAmountDto,
+    @Res() res: Response,
+  ): Promise<any> {
+    const response = await this.ridesService.getDeliveryPrice(payload);
+
+    res.status(200).json({
+      success: true,
+      data: response,
+      message: 'Success',
     });
   }
 }

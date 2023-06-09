@@ -1,13 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export type RidesDocument = Rides &
+export type RidesDocument = Ride &
   Document & {
     createdAt?: Date;
     updatedAt?: Date;
   };
 
 @Schema({ timestamps: true })
-export class Rides {
+export class Ride {
   @Prop()
   name: string;
 
@@ -18,4 +19,4 @@ export class Rides {
   pricePerKilometer: number;
 }
 
-export const RidesSchema = SchemaFactory.createForClass(Rides);
+export const RidesSchema = SchemaFactory.createForClass(Ride);
