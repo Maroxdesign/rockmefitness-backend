@@ -13,6 +13,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { SupportModule } from './module/v1/support/support.module';
 import { RatingModule } from './module/v1/rating/rating.module';
 import { RidesModule } from './module/v1/rides/rides.module';
+import { OrdersModule } from './module/v1/orders/orders.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { RidesModule } from './module/v1/rides/rides.module';
     SupportModule,
     RatingModule,
     RidesModule,
+    OrdersModule
   ],
   controllers: [],
   providers: [AppService],

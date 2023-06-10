@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-enum PickupType {
+export enum PickupType {
   NOW = 'NOW',
   SCHEDULE = 'SCHEDULE',
 }
 
-enum OrderStatus {
+export enum OrderStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED',
@@ -14,7 +14,7 @@ enum OrderStatus {
   COMPLETED = 'COMPLETED',
 }
 
-enum PaymentStatus {
+export enum PaymentStatus {
   PENDING = 'PENDING',
   PAID = 'PAID',
 }
@@ -54,7 +54,7 @@ export class Order {
   pickupType: PickupType;
 
   @Prop({ required: false })
-  pickupDate: Date;
+  pickupDate: string;
 
   @Prop({ required: false })
   pickupTime: string;
