@@ -10,6 +10,7 @@ export type UserDocument = User &
     updatedAt?: Date;
     createdAt?: Date;
   };
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, trim: true })
@@ -67,6 +68,12 @@ export class User {
 
   @Prop({ default: {}, required: false })
   account: Account;
+
+  @Prop({ nullable: true })
+  longitude: number;
+
+  @Prop({ nullable: true })
+  latitude: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

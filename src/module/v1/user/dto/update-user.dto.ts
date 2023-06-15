@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsNumberString,
   IsOptional,
   IsString,
   MaxLength,
@@ -21,6 +21,14 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsBoolean()
   @IsOptional()
   deactivate?: boolean;
+
+  @IsNumberString()
+  @IsOptional()
+  longitude?: number;
+
+  @IsNumberString()
+  @IsOptional()
+  latitude?: number;
 }
 
 export class ChangePasswordDto {

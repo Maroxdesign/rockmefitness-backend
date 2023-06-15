@@ -23,4 +23,8 @@ export class OrdersService {
       throw new Error(err.message);
     }
   }
+
+  async getUserOrders(userId: string): Promise<OrderDocument[]> {
+    return this.orderModel.find({ userId });
+  }
 }
