@@ -69,11 +69,8 @@ export class User {
   @Prop({ default: {}, required: false })
   account: Account;
 
-  @Prop({ nullable: true, default: 0 })
-  longitude: number;
-
-  @Prop({ nullable: true, default: 0 })
-  latitude: number;
+  @Prop({ type: Object, index: '2dsphere' })
+  location: { type: string; coordinates: number[] };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

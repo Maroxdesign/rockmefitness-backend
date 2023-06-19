@@ -28,6 +28,10 @@ export class OrdersService {
     return this.orderModel.find({ userId });
   }
 
+  async getOrderById(orderId: string): Promise<OrderDocument> {
+    return await this.orderModel.findById(orderId);
+  }
+
   async assignDriverToOrder(driverId: string, orderId: string): Promise<void> {
     const order = await this.orderModel.findByIdAndUpdate(
       {
