@@ -1,4 +1,4 @@
-import { Controller, Put, Res } from '@nestjs/common';
+import { Body, Controller, Put, Res } from '@nestjs/common';
 import { DriverService } from './driver.service';
 import {
   ILoggedInUser,
@@ -11,10 +11,10 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 export class DriverController {
   constructor(private readonly driverService: DriverService) {}
 
-  @Put('updateLocation')
+  @Put('location')
   async updateDriverLocation(
     @LoggedInUser() user: ILoggedInUser,
-    payload: UpdateLocationDto,
+    @Body() payload: UpdateLocationDto,
     @Res() res: Response,
   ) {
     const data = await this.driverService.updateDriverLocation(

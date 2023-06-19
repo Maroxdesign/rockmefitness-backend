@@ -29,15 +29,22 @@ export class DriverService {
   async findNearbyDrivers(lat: number, lng: number): Promise<UserDocument[]> {
     return await this.userModel
       .find({
-        location: {
-          $near: {
-            $maxDistance: 10000,
-            $geometry: {
-              type: 'Point',
-              coordinates: [lng, lat],
+        $and: [
+          {
+            location: {
+              $near: {
+                $maxDistance: 10000,
+                $geometry: {
+                  type: 'Point',
+                  coordinates: [lng, lat],
+                },
+              },
             },
           },
-        },
+          {
+            driverAvailability: true,
+          },
+        ],
       })
       .sort({ location: 'asc' });
   }
