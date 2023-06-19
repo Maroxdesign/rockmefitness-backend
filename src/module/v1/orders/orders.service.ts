@@ -27,4 +27,20 @@ export class OrdersService {
   async getUserOrders(userId: string): Promise<OrderDocument[]> {
     return this.orderModel.find({ userId });
   }
+
+  async assignDriverToOrder(driverId: string, orderId: string): Promise<void> {
+    const order = await this.orderModel.findByIdAndUpdate(
+      {
+        _id: orderId,
+      },
+      {
+        driverId,
+      },
+      {
+        new: true,
+      },
+    );
+
+    console.log(order);
+  }
 }

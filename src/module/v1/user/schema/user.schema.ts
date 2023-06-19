@@ -69,10 +69,10 @@ export class User {
   @Prop({ default: {}, required: false })
   account: Account;
 
-  @Prop({ nullable: true })
+  @Prop({ nullable: true, default: 0 })
   longitude: number;
 
-  @Prop({ nullable: true })
+  @Prop({ nullable: true, default: 0 })
   latitude: number;
 }
 

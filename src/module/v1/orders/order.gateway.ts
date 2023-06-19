@@ -9,7 +9,7 @@ import {
 import { Server } from 'socket.io';
 import { OrdersService } from './orders.service';
 
-@WebSocketGateway(1000, {
+@WebSocketGateway({
   cors: {
     origin: '*',
   },
@@ -38,5 +38,16 @@ export class OrderGateway
   @SubscribeMessage('completeOrder')
   handleCompleteOrder(client: any, data: any) {
     console.log('completeOrder', data);
+    client.emit('orderCompleteUpdate');
+  }
+
+  @SubscribeMessage('assignDriverToOrder')
+  async handleAssignDriverToOrder(client: any, data: any) {
+    console.log('assignDriverToOrder', data);
+    const { driverId, orderId } = data;
+
+    await this.orderService.assignDriverToOrder(driverId, orderId);
+
+    client.emit('orderAssignedToDriver');
   }
 }

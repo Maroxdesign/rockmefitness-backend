@@ -1,7 +1,7 @@
 // Order Workflow 
 
-1. user create order 
-2. user complete payment for order 
+1. user create order (done)
+2. user complete payment for order (done)
 3. get closest driver and assign to order 
 4. driver can accept and reject order, if driver reject order get another driver and send order .
 if driver accepts {
