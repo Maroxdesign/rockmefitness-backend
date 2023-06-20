@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './schema/order.schema';
 import { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -46,5 +47,19 @@ export class OrdersService {
     );
 
     console.log(order);
+  }
+
+  async updateOrder(orderId: string, payload: UpdateOrderDto): Promise<void> {
+    await this.orderModel.findByIdAndUpdate(
+      {
+        _id: orderId,
+      },
+      {
+        ...payload,
+      },
+      {
+        new: true,
+      },
+    );
   }
 }

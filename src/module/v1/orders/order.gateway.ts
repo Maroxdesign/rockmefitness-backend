@@ -8,7 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { OrdersService } from './orders.service';
-import { ICompleteOrder } from 'src/common/constants/order.constants';
+import {
+  ICompleteOrder,
+  IDriverAcceptOrder,
+  IDriverRejectOrder,
+} from 'src/common/constants/order.constants';
 import { DriverService } from '../driver/driver.service';
 
 @WebSocketGateway({
@@ -46,9 +50,19 @@ export class OrderGateway
 
     const order = await this.orderService.getOrderById(orderId);
 
-    const closestDrivers = await this.driverService.findNearbyDrivers(
+    console.log('order', order);
+
+    if (order.driverId) {
+      return;
+    }
+
+    let closestDrivers = await this.driverService.findNearbyDrivers(
       order.fromLatitude,
       order.fromLongitude,
+    );
+
+    closestDrivers = closestDrivers.filter(
+      (driver) => !order.rejectedDriverIds.includes(driver._id),
     );
 
     console.log('closest-drivers', closestDrivers);
@@ -56,13 +70,26 @@ export class OrderGateway
     console.log('completeOrder', data);
   }
 
-  @SubscribeMessage('assignDriverToOrder')
-  async handleAssignDriverToOrder(client: any, data: any) {
-    console.log('assignDriverToOrder', data);
+  @SubscribeMessage('handleDriverRejectdOrder')
+  async handleDriverRejectedOrder(client: any, data: IDriverRejectOrder) {
+    const { orderId, driverId } = data;
+
+    await this.orderService.updateOrder(orderId, {
+      rejectedDriverIds: [driverId],
+    });
+
+    await this.handleCompleteOrder(client, { orderId });
+    client.emit('driverRejectedOrderSuccess');
+    console.log('handleDriverRejectedOrder', data);
+  }
+
+  @SubscribeMessage('handleDriverAcceptOrder')
+  async handleDriverAcceptOrder(client: any, data: IDriverAcceptOrder) {
     const { driverId, orderId } = data;
 
     await this.orderService.assignDriverToOrder(driverId, orderId);
 
     client.emit('orderAssignedToDriver');
+    console.log('handleDriverAcceptOrder', data);
   }
 }

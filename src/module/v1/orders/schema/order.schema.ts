@@ -85,6 +85,9 @@ export class Order {
 
   @Prop({ required: true, default: false })
   isDelivered: boolean;
+
+  @Prop({ required: false })
+  rejectedDriverIds: string[];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

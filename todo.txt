@@ -9,25 +9,3 @@ if driver accepts {
   also send eta
 }
 5. calculate estimated delivery time 
-
-
-
-
-
-
-i am working on a delivery app api. using nestjs and mongodb
-
- i have the order schema and user schema. the user/ driver schema has 
-{
-longititude: number
-Latitude: number
-}
-
-While the order schema has 
-{
-  fromLongitude: number,
-  fromLatitude: number
-}
-
-i want to query db to get all drivers close to the pickup location of the order using the longitude and latitude.
-and then i'll send driver notification request to accept order, when driver accept order i want to update user with the eta and driver location . i am using websockets for real time communication
