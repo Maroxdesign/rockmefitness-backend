@@ -4,9 +4,14 @@ import { Order, OrderDocument } from './schema/order.schema';
 import { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import axios from 'axios';
+import { config } from 'dotenv';
+config();
 
 @Injectable()
 export class OrdersService {
+  private readonly googleDirectionApiKey = process.env.GOOGLE_DIRECTION_API_KEY;
+
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
   ) {}
@@ -45,8 +50,6 @@ export class OrdersService {
         new: true,
       },
     );
-
-    console.log(order);
   }
 
   async updateOrder(orderId: string, payload: UpdateOrderDto): Promise<void> {
@@ -61,5 +64,22 @@ export class OrdersService {
         new: true,
       },
     );
+  }
+
+  async calculateEta(
+    fromLon: number,
+    fromLat: number,
+    toLon: number,
+    toLat: number,
+  ) {
+    const apiUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${fromLat},${fromLon}&destination=${toLon},${toLat}&key=${this.googleDirectionApiKey}`;
+
+    try {
+      const response = await axios.get(apiUrl);
+
+      return response.data.routes[0].legs[0].duration.text;
+    } catch (error) {
+      throw new Error('Failed to calculate ETA.');
+    }
   }
 }

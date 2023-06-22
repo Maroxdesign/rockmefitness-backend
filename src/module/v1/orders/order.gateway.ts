@@ -14,7 +14,6 @@ import {
   IDriverRejectOrder,
 } from 'src/common/constants/order.constants';
 import { DriverService } from '../driver/driver.service';
-import { Client } from '@googlemaps/google-maps-services-js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -47,39 +46,15 @@ export class OrderGateway
     console.log('client disconnected');
   }
 
-  async calculateEta(
-    fromLon: number,
-    fromLat: number,
-    toLon: number,
-    toLat: number,
-  ) {
-    const googleMapsClient = new Client();
-
-    const response = await googleMapsClient.directions({
-      params: {
-        origin: `${fromLat},${fromLon}`,
-        destination: `${toLat},${toLon}`,
-        key: process.env.GOOGLE_DIRECTION_API_KEY,
-      },
-    });
-
-    const durationSeconds = response.data.routes[0].legs[0].duration.value;
-
-    console.log('eta', durationSeconds);
-    return durationSeconds;
-  }
-
   @SubscribeMessage('completeOrder')
   async handleCompleteOrder(client: any, data: ICompleteOrder) {
     const { orderId } = data;
 
-    const order = await this.orderService.getOrderById(orderId);
+    let order = await this.orderService.getOrderById(orderId);
 
-    console.log('order', order);
-
-    // if (order.driverId) {
-    //   return;
-    // }
+    if (order.driverId) {
+      return;
+    }
 
     let closestDrivers = await this.driverService.findNearbyDrivers(
       order.fromLatitude,
@@ -90,16 +65,18 @@ export class OrderGateway
       (driver) => !order.rejectedDriverIds.includes(driver._id),
     );
 
-    const eta = await this.calculateEta(
+    //todo: update;
+    const eta = await this.orderService.calculateEta(
       closestDrivers[0].location.coordinates[0],
       closestDrivers[0].location.coordinates[1],
-      order.fromLongitude,
       order.fromLatitude,
+      order.fromLongitude,
     );
 
-    console.log('closest-drivers', closestDrivers);
-
-    console.log('completeOrder', data);
+    order.eta = eta;
+    await this.orderService.updateOrder(orderId, {
+      eta,
+    });
   }
 
   @SubscribeMessage('handleDriverRejectdOrder')
