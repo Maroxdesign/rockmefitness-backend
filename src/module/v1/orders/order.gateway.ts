@@ -15,6 +15,7 @@ import {
 } from 'src/common/constants/order.constants';
 import { DriverService } from '../driver/driver.service';
 import * as dotenv from 'dotenv';
+import { UserService } from '../user/user.service';
 dotenv.config();
 
 @WebSocketGateway({
@@ -30,6 +31,7 @@ export class OrderGateway
   constructor(
     private readonly orderService: OrdersService,
     private driverService: DriverService,
+    private userServcie: UserService,
   ) {}
 
   afterInit(server: any): any {
@@ -37,13 +39,11 @@ export class OrderGateway
   }
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('client connected');
-
-    client.emit('message', 'Successfully connected to server');
+    console.log('client connected', client);
   }
 
   handleDisconnect(client: any) {
-    console.log('client disconnected');
+    console.log('client disconnected', client);
   }
 
   @SubscribeMessage('completeOrder')
@@ -64,19 +64,6 @@ export class OrderGateway
     closestDrivers = closestDrivers.filter(
       (driver) => !order.rejectedDriverIds.includes(driver._id),
     );
-
-    //todo: update;
-    const eta = await this.orderService.calculateEta(
-      closestDrivers[0].location.coordinates[0],
-      closestDrivers[0].location.coordinates[1],
-      order.fromLatitude,
-      order.fromLongitude,
-    );
-
-    order.eta = eta;
-    await this.orderService.updateOrder(orderId, {
-      eta,
-    });
   }
 
   @SubscribeMessage('handleDriverRejectdOrder')
@@ -96,9 +83,25 @@ export class OrderGateway
   async handleDriverAcceptOrder(client: any, data: IDriverAcceptOrder) {
     const { driverId, orderId } = data;
 
+    const driver = await this.userServcie.findById(driverId);
+    const order = await this.orderService.getOrderById(orderId);
+
     await this.orderService.assignDriverToOrder(driverId, orderId);
 
-    client.emit('orderAssignedToDriver');
+    //todo: update;
+    const eta = await this.orderService.calculateEta(
+      driver.location.coordinates[0],
+      driver.location.coordinates[1],
+      order.fromLatitude,
+      order.fromLongitude,
+    );
+
+    order.eta = eta;
+    await this.orderService.updateOrder(orderId, {
+      eta,
+    });
+
+    client.emit('orderAssignedToDriver', order);
     console.log('handleDriverAcceptOrder', data);
   }
 }
