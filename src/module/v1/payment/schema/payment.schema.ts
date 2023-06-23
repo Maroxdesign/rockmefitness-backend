@@ -9,6 +9,9 @@ export class Payment {
   amount: number;
 
   @Prop({ required: true })
+  currency: string;
+
+  @Prop({ required: true })
   reference: string;
 
   @Prop({ required: true })

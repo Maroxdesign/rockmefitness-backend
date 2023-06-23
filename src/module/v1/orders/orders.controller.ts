@@ -17,11 +17,11 @@ export class OrdersController {
     @LoggedInUser() user: ILoggedInUser,
     @Res() res: Response,
   ) {
-    const order = await this.ordersService.create(user._id, payload);
+    const paymentUrl = await this.ordersService.create(user._id, payload);
 
     return res.status(201).json({
       success: true,
-      data: order,
+      data: paymentUrl,
       message: 'Order created successfully',
     });
   }

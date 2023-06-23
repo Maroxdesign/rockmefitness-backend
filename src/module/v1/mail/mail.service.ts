@@ -11,12 +11,11 @@ export class MailService {
   // *****
   // This is used for gmail and other email using smtp
   // *****
-  // async sendMail({ to, subject, template, context, attachments }: ISendMail) {
+  // async sendMail({ to, subject, template, attachments }: ISendMail) {
   //   await this.mailerService.sendMail({
   //     to,
   //     subject,
   //     template,
-  //     context,
   //     attachments,
   //   });
   // }

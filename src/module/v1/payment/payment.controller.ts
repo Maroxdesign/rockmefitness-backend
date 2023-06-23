@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Response } from 'express';
@@ -7,10 +16,23 @@ import {
   ILoggedInUser,
   LoggedInUser,
 } from '../../../common/decorator/user.decorator';
+import { Public } from 'src/common/decorator/public.decorator';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
+
+  @Public()
+  @Get('verify')
+  async verifyPayment(@Res() res: Response, @Query('trxref') ref: string) {
+    const order = await this.paymentService.verifyPaystackPayment(ref);
+
+    return res.status(200).json({
+      success: true,
+      data: order,
+      message: 'Payment verified successfully',
+    });
+  }
 
   @Post()
   async createPayment(@Body() payload: CreatePaymentDto, @Res() res: Response) {

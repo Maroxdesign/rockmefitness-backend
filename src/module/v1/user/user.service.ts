@@ -537,4 +537,23 @@ export class UserService {
     }
     return user;
   }
+
+  async updateUserLocation(
+    driverId: string,
+    longitude: number,
+    latitude: number,
+  ): Promise<UserDocument> {
+    return this.userModel.findByIdAndUpdate(
+      { _id: driverId },
+      {
+        $set: {
+          location: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+        },
+      },
+      { new: true },
+    );
+  }
 }

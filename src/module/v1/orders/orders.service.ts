@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './schema/order.schema';
 import { Model } from 'mongoose';
@@ -6,6 +11,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import axios from 'axios';
 import { config } from 'dotenv';
+import { PaymentService } from '../payment/payment.service';
+import { UserService } from '../user/user.service';
 config();
 
 @Injectable()
@@ -14,17 +21,35 @@ export class OrdersService {
 
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    @Inject(forwardRef(() => PaymentService))
+    private paymentService: PaymentService,
+    private userService: UserService,
   ) {}
 
-  async create(
-    userId: string,
-    payload: CreateOrderDto,
-  ): Promise<OrderDocument> {
+  async create(userId: string, payload: CreateOrderDto) {
     try {
-      return await this.orderModel.create({
+      const user = await this.userService.findById(userId);
+
+      if (!user) {
+        throw new NotFoundException('invalid user');
+      }
+
+      const order = await this.orderModel.create({
         ...payload,
         userId,
       });
+
+      return await this.paymentService.initializePaystackPayment(
+        {
+          email: user.email,
+          amount: payload.orderAmount * 100,
+          callback_url: `${process.env.APP_BASE_URL}/api/v1/payment/verify`,
+        },
+        {
+          orderId: order._id,
+          userId,
+        },
+      );
     } catch (err) {
       throw new Error(err.message);
     }
