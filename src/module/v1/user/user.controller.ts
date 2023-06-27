@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,6 +8,7 @@ import {
   Query,
   Request,
   Res,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -32,7 +34,10 @@ import {
 } from '../../../common/constants/user.constants';
 import { ResponseMessage } from '../../../common/decorator/response.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { Public } from '../../../common/decorator/public.decorator';
 import {
   ILoggedInUser,
@@ -171,6 +176,25 @@ export class UserController {
       success: true,
       data,
       message: 'Driver location updated successfully',
+    });
+  }
+
+  @Patch('profile-image')
+  @UseInterceptors(FileInterceptor('image'))
+  async updateProfileImage(
+    @LoggedInUser() user: ILoggedInUser,
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image is required');
+    }
+
+    await this.userService.updateProfileImage(user._id, file);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile image updated successfully',
     });
   }
 }

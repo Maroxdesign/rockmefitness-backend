@@ -556,4 +556,25 @@ export class UserService {
       { new: true },
     );
   }
+
+  async updateProfileImage(userId: string, file: Express.Multer.File) {
+    const userExist = await this.userModel.count({
+      _id: userId,
+    });
+
+    if (userExist <= 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const url = await this.spacesService.uploadFile(file);
+
+    await this.userModel.updateMany(
+      {
+        _id: userId,
+      },
+      {
+        profileImage: url,
+      },
+    );
+  }
 }

@@ -29,6 +29,14 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsNumberString()
   @IsOptional()
   latitude?: number;
+
+  @IsOptional()
+  @IsString()
+  dob?: string;
+
+  @IsOptional()
+  @IsString()
+  profileImage?: string;
 }
 
 export class ChangePasswordDto {

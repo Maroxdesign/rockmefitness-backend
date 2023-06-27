@@ -71,6 +71,12 @@ export class User {
 
   @Prop({ type: Object, index: '2dsphere' })
   location: { type: string; coordinates: number[] };
+
+  @Prop({ required: false })
+  dob: string;
+
+  @Prop({ required: false })
+  profileImage: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
