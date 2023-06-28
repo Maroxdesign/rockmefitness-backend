@@ -10,7 +10,8 @@ import { environment } from 'src/common/config/environment';
     MailerModule.forRoot({
       transport: {
         service: environment.EMAIL.SERVICE,
-        secure: false, // todo: change to true for production
+        secure: false, // todo: change to true for production,
+        host: 'smtp.gmail.com',
         auth: {
           user: environment.EMAIL.USERNAME,
           pass: environment.EMAIL.PASSWORD,

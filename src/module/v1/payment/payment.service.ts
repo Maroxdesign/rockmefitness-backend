@@ -1,23 +1,15 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-  forwardRef,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Payment, PaymentDocument } from './schema/payment.schema';
-import { Model } from 'mongoose';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
+import {BadRequestException, forwardRef, Inject, Injectable, Logger,} from '@nestjs/common';
+import {InjectModel} from '@nestjs/mongoose';
+import {Payment, PaymentDocument} from './schema/payment.schema';
+import {Model} from 'mongoose';
+import {CreatePaymentDto} from './dto/create-payment.dto';
+import {UpdatePaymentDto} from './dto/update-payment.dto';
 import * as Paystack from 'paystack';
-import {
-  IPaystackPayment,
-  IPaystackPaymentMetadata,
-} from 'src/common/constants/payment';
-import { OrdersService } from '../orders/orders.service';
-import { Order } from '../orders/schema/order.schema';
+import {IPaystackPayment, IPaystackPaymentMetadata,} from 'src/common/constants/payment';
+import {OrdersService} from '../orders/orders.service';
 import {PaymentStatus} from "../../../common/constants/order.constants";
+import {HistoryService} from "../history/history.service";
+import {HistoryTypeEnum, PendingPickup} from "../../../common/constants/history.constants";
 
 @Injectable()
 export class PaymentService {
@@ -29,6 +21,7 @@ export class PaymentService {
     private readonly paymentModel: Model<PaymentDocument>,
     @Inject(forwardRef(() => OrdersService))
     private orderService: OrdersService,
+    private historyService: HistoryService
   ) {
     this.paystack = new Paystack(process.env.PAYSTACK_SECRET);
   }
@@ -55,7 +48,9 @@ export class PaymentService {
         throw new BadRequestException('Invalid payment');
       }
 
-      const { status, amount, currency, reference, metadata } = response.data;
+      let { status, amount, currency, reference, metadata } = response.data;
+      // divide by 100 to get actual price
+      amount = amount / 100
 
       const paymentExists = await this.paymentModel.findOne({
         reference,
@@ -74,10 +69,21 @@ export class PaymentService {
         userId: metadata.userId,
       });
 
+      await this.historyService.createHistory(metadata.userId, {
+        title: "Payment Successful!",
+        description: `Package delivery payment of N${amount} successful made`,
+        type: HistoryTypeEnum.Payment,
+        status: "SUCCESS"
+      })
+
       if (metadata.orderId) {
         await this.orderService.updateOrder(metadata.orderId, {
           paymentStatus: PaymentStatus.PAID,
         });
+
+        await this.historyService.updateHistoryByOrderId(metadata.orderId, {
+          status: PendingPickup
+        })
 
         return await this.orderService.getOrderById(metadata.orderId);
       }

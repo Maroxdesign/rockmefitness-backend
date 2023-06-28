@@ -23,7 +23,7 @@ export class History {
   status: string;
 
   @Prop({ required: false })
-  amount: string;
+  amount: number;
 
   @Prop({ required: false })
   fromLocation: string;
@@ -33,6 +33,9 @@ export class History {
 
   @Prop({ required: true })
   userId: string;
+
+  @Prop({ required: false })
+  orderId: string;
 }
 
 export const HistorySchema = SchemaFactory.createForClass(History);

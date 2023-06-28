@@ -7,6 +7,7 @@ import { OrderGateway } from './order.gateway';
 import { DriverModule } from '../driver/driver.module';
 import { UserModule } from '../user/user.module';
 import { PaymentModule } from '../payment/payment.module';
+import {HistoryModule} from "../history/history.module";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PaymentModule } from '../payment/payment.module';
     forwardRef(() => DriverModule),
     forwardRef(() => UserModule),
     PaymentModule,
+      HistoryModule
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrderGateway],

@@ -9,6 +9,7 @@ import {HistorySchema, History} from "./schema/history.schema";
       MongooseModule.forFeature([{name: History.name, schema: HistorySchema}])
   ],
   controllers: [HistoryController],
-  providers: [HistoryService]
+  providers: [HistoryService],
+  exports: [HistoryService]
 })
 export class HistoryModule {}

@@ -1,4 +1,4 @@
-import {IsEnum, IsNotEmpty, IsOptional, IsString} from "class-validator";
+import {IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString} from "class-validator";
 import {HistoryTypeEnum} from "../../../../common/constants/history.constants";
 
 export class CreateHistoryDto {
@@ -19,14 +19,18 @@ export class CreateHistoryDto {
     status: string;
 
     @IsOptional()
-    @IsString()
-    amount: string;
+    @IsNumber()
+    amount?: number;
 
     @IsOptional()
     @IsString()
-    fromLocation: string;
+    fromLocation?: string;
 
     @IsOptional()
     @IsString()
-    toLocation: string;
+    toLocation?: string;
+
+    @IsOptional()
+    @IsString()
+    orderId?: string;
 }

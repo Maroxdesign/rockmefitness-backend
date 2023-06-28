@@ -29,3 +29,8 @@ export enum PaymentStatus {
   PENDING = 'PENDING',
   PAID = 'PAID',
 }
+
+export interface IActiveUsers {
+  socketId: string;
+  userId: string;
+}
