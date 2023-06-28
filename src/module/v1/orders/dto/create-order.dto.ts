@@ -6,7 +6,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { OrderStatus, PaymentStatus, PickupType } from '../schema/order.schema';
+
+import {OrderStatus, PaymentStatus, PickupType} from "../../../../common/constants/order.constants";
 
 export class CreateOrderDto {
   @IsNotEmpty()

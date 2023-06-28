@@ -1,23 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
-
-export enum PickupType {
-  NOW = 'NOW',
-  SCHEDULE = 'SCHEDULE',
-}
-
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-}
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import mongoose, {Document} from 'mongoose';
+import {OrderStatus, PaymentStatus, PickupType} from "../../../../common/constants/order.constants";
 
 export type OrderDocument = Order & Document;
 

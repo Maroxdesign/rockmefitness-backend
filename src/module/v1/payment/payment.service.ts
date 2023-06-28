@@ -16,7 +16,8 @@ import {
   IPaystackPaymentMetadata,
 } from 'src/common/constants/payment';
 import { OrdersService } from '../orders/orders.service';
-import { Order, PaymentStatus } from '../orders/schema/order.schema';
+import { Order } from '../orders/schema/order.schema';
+import {PaymentStatus} from "../../../common/constants/order.constants";
 
 @Injectable()
 export class PaymentService {

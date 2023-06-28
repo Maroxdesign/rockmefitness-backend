@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional } from 'class-validator';
-import { PaymentStatus } from '../../orders/schema/order.schema';
+
+import {PaymentStatus} from "../../../../common/constants/order.constants";
 
 export class UpdatePaymentDto {
   @IsOptional()
