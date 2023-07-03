@@ -537,4 +537,44 @@ export class UserService {
     }
     return user;
   }
+
+  async updateUserLocation(
+    driverId: string,
+    longitude: number,
+    latitude: number,
+  ): Promise<UserDocument> {
+    return this.userModel.findByIdAndUpdate(
+      { _id: driverId },
+      {
+        $set: {
+          location: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+        },
+      },
+      { new: true },
+    );
+  }
+
+  async updateProfileImage(userId: string, file: Express.Multer.File) {
+    const userExist = await this.userModel.count({
+      _id: userId,
+    });
+
+    if (userExist <= 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const url = await this.spacesService.uploadFile(file);
+
+    await this.userModel.updateMany(
+      {
+        _id: userId,
+      },
+      {
+        profileImage: url,
+      },
+    );
+  }
 }

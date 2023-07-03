@@ -8,8 +8,7 @@ export class Rating {
   @Prop({required: true, type: mongoose.Schema.Types.ObjectId, ref: "user"})
   userId: string;
 
-  // TODO: change type to object id when order done
-  @Prop({required: true, type: String})
+  @Prop({required: true, type: mongoose.Schema.Types.ObjectId, ref: "order"})
   orderId: string;
 
   @Prop({required: true, type: String})

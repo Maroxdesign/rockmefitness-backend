@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -6,6 +7,8 @@ import {
   Patch,
   Query,
   Request,
+  Res,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -27,12 +30,21 @@ import {
   PASSWORD_UPDATED,
   RoleEnum,
   USER_UPDATED,
-  VEHICLE_UPDATED
-} from "../../../common/constants/user.constants";
+  VEHICLE_UPDATED,
+} from '../../../common/constants/user.constants';
 import { ResponseMessage } from '../../../common/decorator/response.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { Public } from '../../../common/decorator/public.decorator';
+import {
+  ILoggedInUser,
+  LoggedInUser,
+} from '../../../common/decorator/user.decorator';
+import { UpdateLocationDto } from '../driver/dto/update-location.dto';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -146,5 +158,43 @@ export class UserController {
     @Body() request: SwitchAvailabilityDto,
   ) {
     return await this.userService.switchAvailability(id, request);
+  }
+
+  @Patch('location')
+  async updateDriverLocation(
+    @LoggedInUser() user: ILoggedInUser,
+    @Body() payload: UpdateLocationDto,
+    @Res() res: Response,
+  ) {
+    const data = await this.userService.updateUserLocation(
+      user._id,
+      payload.longitude,
+      payload.latitude,
+    );
+
+    return res.status(200).json({
+      success: true,
+      data,
+      message: 'Driver location updated successfully',
+    });
+  }
+
+  @Patch('profile-image')
+  @UseInterceptors(FileInterceptor('image'))
+  async updateProfileImage(
+    @LoggedInUser() user: ILoggedInUser,
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image is required');
+    }
+
+    await this.userService.updateProfileImage(user._id, file);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile image updated successfully',
+    });
   }
 }

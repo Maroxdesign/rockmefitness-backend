@@ -11,41 +11,40 @@ export class MailService {
   // *****
   // This is used for gmail and other email using smtp
   // *****
-  // async sendMail({ to, subject, template, context, attachments }: ISendMail) {
-  //   await this.mailerService.sendMail({
-  //     to,
-  //     subject,
-  //     template,
-  //     context,
-  //     attachments,
-  //   });
-  // }
-
   async sendMail({ to, subject, template, attachments }: ISendMail) {
-    const body = {
+    await this.mailerService.sendMail({
       to,
-      from: {
-        email: environment.APP.EMAIL,
-        name: environment.APP.NAME,
-      },
-      replyTo: {
-        email: environment.APP.EMAIL,
-        name: environment.APP.NAME,
-      },
       subject,
       html: template,
       attachments,
-    };
-
-    sendGrid.setApiKey(environment.SENDGRID);
-    sendGrid
-      .send(body)
-      .then((response) => {
-        console.log(response[0].statusCode);
-        console.log(response[0].headers);
-      })
-      .catch((error) => {
-        console.error(JSON.stringify(error));
-      });
+    });
   }
+
+  // async sendMail({ to, subject, template, attachments }: ISendMail) {
+  //   const body = {
+  //     to,
+  //     from: {
+  //       email: environment.APP.EMAIL,
+  //       name: environment.APP.NAME,
+  //     },
+  //     replyTo: {
+  //       email: environment.APP.EMAIL,
+  //       name: environment.APP.NAME,
+  //     },
+  //     subject,
+  //     html: template,
+  //     attachments,
+  //   };
+  //
+  //   sendGrid.setApiKey(environment.SENDGRID);
+  //   sendGrid
+  //     .send(body)
+  //     .then((response) => {
+  //       console.log(response[0].statusCode);
+  //       console.log(response[0].headers);
+  //     })
+  //     .catch((error) => {
+  //       console.error(JSON.stringify(error));
+  //     });
+  // }
 }

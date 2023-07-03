@@ -10,14 +10,15 @@ import { environment } from 'src/common/config/environment';
     MailerModule.forRoot({
       transport: {
         service: environment.EMAIL.SERVICE,
-        secure: true,
+        secure: false, // todo: change to true for production,
+        host: 'smtp.gmail.com',
         auth: {
           user: environment.EMAIL.USERNAME,
           pass: environment.EMAIL.PASSWORD,
         },
       },
       defaults: {
-        from: `"Figur" <noreply@figur.africa>`,
+        from: `Express Ryder <${environment.EMAIL.USERNAME}>`,
       },
       template: {
         dir: join(__dirname, 'template'),

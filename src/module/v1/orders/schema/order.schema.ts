@@ -1,23 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-
-export enum PickupType {
-  NOW = 'NOW',
-  SCHEDULE = 'SCHEDULE',
-}
-
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-}
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import mongoose, {Document} from 'mongoose';
+import {OrderStatus, PaymentStatus, PickupType} from "../../../../common/constants/order.constants";
 
 export type OrderDocument = Order & Document;
 
@@ -62,8 +45,7 @@ export class Order {
   @Prop({ required: true })
   rideType: string;
 
-  // TODO: changet type to mongoose.Schema.Types.ObjectId
-  @Prop({ required: true })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Ride' })
   rideId: string;
 
   @Prop({ required: true })
@@ -75,15 +57,10 @@ export class Order {
   @Prop({ required: true, default: PaymentStatus.PENDING })
   paymentStatus: PaymentStatus;
 
-  @Prop({ required: false })
-  paymentId: string;
-
-  // TODO: changet type to mongoose.Schema.Types.ObjectId
-  @Prop({ required: true })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: string;
 
-  // TODO: changet type to mongoose.Schema.Types.ObjectId
-  @Prop({ required: false })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   driverId: string;
 
   @Prop({ required: true, default: false })
@@ -91,6 +68,12 @@ export class Order {
 
   @Prop({ required: true, default: false })
   isDelivered: boolean;
+
+  @Prop({ required: false })
+  rejectedDriverIds: string[];
+
+  @Prop({ required: false })
+  eta: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

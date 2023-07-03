@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.3.32",
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/axios": "^0.1.0",
     "@nestjs/common": "^9.0.0",
@@ -31,12 +32,15 @@
     "@nestjs/mongoose": "^9.2.0",
     "@nestjs/passport": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/platform-socket.io": "^10.0.2",
     "@nestjs/schedule": "^2.2.0",
     "@nestjs/throttler": "^4.0.0",
+    "@nestjs/websockets": "^9.4.3",
     "@sendgrid/mail": "^7.7.0",
     "@types/bcrypt": "^5.0.0",
     "@types/csurf": "^1.11.2",
     "aws-sdk": "^2.1382.0",
+    "axios": "^1.4.0",
     "bcrypt": "^5.0.1",
     "cache-manager": "4.0.0",
     "cache-manager-redis-store": "^2.0.0",
@@ -54,11 +58,13 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "paystack": "^2.0.1",
     "puppeteer": "^19.5.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "sib-api-v3-sdk": "^8.4.2"
+    "sib-api-v3-sdk": "^8.4.2",
+    "socket.io": "^4.6.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
