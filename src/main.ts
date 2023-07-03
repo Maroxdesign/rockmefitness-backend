@@ -8,6 +8,8 @@ import { TransformationInterceptor } from './common/interceptor/response.interce
 import { TimeoutInterceptor } from './common/interceptor/timeout.interceptor';
 import { HttpExceptionFilter } from './common/filter/filter';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { config } from 'dotenv';
+config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -41,6 +43,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(environment.APP.PORT || 3000);
+  await app.listen(process.env.PORT);
 }
 bootstrap();
