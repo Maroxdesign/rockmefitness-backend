@@ -6,8 +6,8 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import {Server} from 'socket.io';
-import {OrdersService} from './orders.service';
+import { Server } from 'socket.io';
+import { OrdersService } from './orders.service';
 import {
   IActiveUsers,
   ICompleteOrder,
@@ -15,11 +15,15 @@ import {
   IDriverRejectOrder,
   OrderStatus,
 } from 'src/common/constants/order.constants';
-import {DriverService} from '../driver/driver.service';
+import { DriverService } from '../driver/driver.service';
 import * as dotenv from 'dotenv';
-import {UserService} from '../user/user.service';
-import {DeliveryCompleted, HistoryTypeEnum, PendingPayment} from "../../../common/constants/history.constants";
-import {HistoryService} from "../history/history.service";
+import { UserService } from '../user/user.service';
+import {
+  DeliveryCompleted,
+  HistoryTypeEnum,
+  PendingPayment,
+} from '../../../common/constants/history.constants';
+import { HistoryService } from '../history/history.service';
 
 dotenv.config();
 
@@ -38,7 +42,7 @@ export class OrderGateway
     private readonly orderService: OrdersService,
     private driverService: DriverService,
     private userService: UserService,
-    private historyService: HistoryService
+    private historyService: HistoryService,
   ) {}
 
   afterInit(server: any): any {
@@ -50,7 +54,9 @@ export class OrderGateway
   }
 
   handleDisconnect(client: any) {
-    this.activeUsers = this.activeUsers.filter(user => user.socketId !== client.id);
+    this.activeUsers = this.activeUsers.filter(
+      (user) => user.socketId !== client.id,
+    );
   }
 
   @SubscribeMessage('userActive')
@@ -59,15 +65,15 @@ export class OrderGateway
 
     this.activeUsers.push({
       socketId: client.id,
-      userId
-    })
+      userId,
+    });
   }
 
   @SubscribeMessage('completeOrder')
   async handleCompleteOrder(client: any, data: ICompleteOrder) {
     const { orderId } = data;
 
-    let order = await this.orderService.getOrderById(orderId);
+    const order = await this.orderService.getOrderById(orderId);
 
     if (order.driverId) {
       return;
@@ -82,7 +88,7 @@ export class OrderGateway
       (driver) => !order.rejectedDriverIds.includes(driver._id),
     );
 
-    if(closestDrivers.length <= 0 ) {
+    if (closestDrivers.length <= 0) {
       return;
     }
 
@@ -95,19 +101,16 @@ export class OrderGateway
   @SubscribeMessage('handleDriverRejectOrder')
   async handleDriverRejectedOrder(client: any, data: IDriverRejectOrder) {
     const { orderId, driverId } = data;
-    
+
     const order = await this.orderService.getOrderById(orderId);
 
-    if(order.rejectedDriverIds.includes(driverId)) {
-      console.log('driver already rejected this order')
-        return;
+    if (order.rejectedDriverIds.includes(driverId)) {
+      console.log('driver already rejected this order');
+      return;
     }
 
     await this.orderService.updateOrder(orderId, {
-      rejectedDriverIds: [
-        ...order.rejectedDriverIds,
-        driverId,
-      ],
+      rejectedDriverIds: [...order.rejectedDriverIds, driverId],
     });
 
     await this.handleCompleteOrder(client, { orderId });
@@ -133,7 +136,7 @@ export class OrderGateway
     order.eta = eta;
     await this.orderService.updateOrder(orderId, {
       eta,
-      orderStatus: OrderStatus.ACCEPTED
+      orderStatus: OrderStatus.ACCEPTED,
     });
 
     client.emit('orderAssignedToDriver', order);
@@ -158,7 +161,7 @@ export class OrderGateway
 
     await this.orderService.updateOrder(orderId, {
       isPickedUp: true,
-    })
+    });
 
     this.server.to(userSocketId).emit('driverPickup', order);
   }
@@ -172,22 +175,19 @@ export class OrderGateway
 
     await this.orderService.updateOrder(orderId, {
       orderStatus: OrderStatus.COMPLETED,
-    })
+    });
 
     // create history
-    await this.historyService.createHistory(
-        order.userId,
-        {
-          title: "New Order",
-          description: "Drop-off Point",
-          amount: order.orderAmount,
-          type: HistoryTypeEnum.Order,
-          status: DeliveryCompleted,
-          fromLocation: order.pickupAddress,
-          toLocation: order.destinationAddress,
-          orderId: order._id
-        }
-    )
+    await this.historyService.createHistory(order.userId, {
+      title: 'New Order',
+      description: 'Drop-off Point',
+      amount: order.orderAmount,
+      type: HistoryTypeEnum.Order,
+      status: DeliveryCompleted,
+      fromLocation: order.pickupAddress,
+      toLocation: order.destinationAddress,
+      orderId: order._id,
+    });
 
     this.server.to(userSocketId).emit('deliveryComplete', order);
   }

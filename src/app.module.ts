@@ -15,7 +15,8 @@ import { RatingModule } from './module/v1/rating/rating.module';
 import { RidesModule } from './module/v1/rides/rides.module';
 import { OrdersModule } from './module/v1/orders/orders.module';
 import { PaymentModule } from './module/v1/payment/payment.module';
-import {HistoryModule} from "./module/v1/history/history.module";
+import { HistoryModule } from './module/v1/history/history.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -42,9 +43,9 @@ import {HistoryModule} from "./module/v1/history/history.module";
     RidesModule,
     OrdersModule,
     PaymentModule,
-    HistoryModule
+    HistoryModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
