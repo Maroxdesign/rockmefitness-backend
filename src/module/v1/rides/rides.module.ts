@@ -12,5 +12,6 @@ import { SpacesModule } from '../spaces/spaces.module';
   ],
   controllers: [RidesController],
   providers: [RidesService],
+  exports: [RidesService],
 })
 export class RidesModule {}

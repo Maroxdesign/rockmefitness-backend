@@ -1,6 +1,10 @@
-import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import mongoose, {Document} from 'mongoose';
-import {OrderStatus, PaymentStatus, PickupType} from "../../../../common/constants/order.constants";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { Document } from 'mongoose';
+import {
+  OrderStatus,
+  PaymentStatus,
+  PickupType,
+} from '../../../../common/constants/order.constants';
 
 export type OrderDocument = Order & Document;
 
