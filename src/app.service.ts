@@ -61,6 +61,11 @@ export class AppService {
       },
     ];
 
+    // delete users that already exist
+    for (const user of userDatas) {
+      await this.userService.deleteUser(user.email);
+    }
+
     const createdUsers = [];
 
     for (const userData of userDatas) {

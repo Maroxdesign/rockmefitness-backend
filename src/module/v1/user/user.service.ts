@@ -577,4 +577,8 @@ export class UserService {
       },
     );
   }
+
+  async deleteUser(email: string) {
+    await this.userModel.findOneAndDelete({ email });
+  }
 }
