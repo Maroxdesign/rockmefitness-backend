@@ -11,6 +11,11 @@ import {
   PickupType,
 } from './common/constants/order.constants';
 import * as bcrypt from 'bcrypt';
+import {
+  DeliveryCompleted,
+  HistoryTypeEnum,
+} from './common/constants/history.constants';
+import { HistoryService } from './module/v1/history/history.service';
 
 @Injectable()
 export class AppService {
@@ -18,6 +23,7 @@ export class AppService {
     private userService: UserService,
     private orderService: OrdersService,
     private rideService: RidesService,
+    private historyService: HistoryService,
   ) {}
 
   getHello(): string {
@@ -44,6 +50,15 @@ export class AppService {
         phone: '088888889',
         role: RoleEnum.RIDER,
       },
+      {
+        name: 'user2',
+        email: 'user3@gmail.com',
+        password: 'password2',
+        firstName: 'name',
+        lastName: 'name',
+        phone: '088888699',
+        role: RoleEnum.RIDER,
+      },
     ];
 
     const createdUsers = [];
@@ -57,6 +72,14 @@ export class AppService {
         password: await bcrypt.hash(userData.password, 12),
       });
       createdUsers.push(res);
+    }
+
+    // seed history for driver and user
+    const driver = await this.userService.findUserByEmail('user3@gmail.com');
+    const user = await this.userService.findUserByEmail('user1@gmail.com');
+
+    if (!driver && !user) {
+      return;
     }
 
     const rides = await this.rideService.getRides();
@@ -85,9 +108,9 @@ export class AppService {
         fromLocation: 'fromLocation1',
         toLocation: 'toLocation1',
         orderId: 'orderId1',
-        userId: createdUsers[0]._id,
+        userId: user._id,
         rideId: ride._id,
-        driverId: createdUsers[1]._id,
+        driverId: driver._id,
         orderAmount: 100,
         orderStatus: OrderStatus.PENDING,
         paymentStatus: PaymentStatus.PAID,
@@ -113,9 +136,9 @@ export class AppService {
         fromLocation: 'fromLocation2',
         toLocation: 'toLocation2',
         orderId: 'orderId2',
-        userId: createdUsers[0]._id,
+        userId: user._id,
         rideId: ride._id,
-        driverId: createdUsers[1]._id,
+        driverId: driver._id,
         orderAmount: 100,
         orderStatus: OrderStatus.PENDING,
         paymentStatus: PaymentStatus.PAID,
@@ -140,6 +163,33 @@ export class AppService {
       Object.assign(dto, order);
       const res = await this.orderService.create(createdUsers[0]._id, dto);
       createdOrders.push(res);
+    }
+
+    // seed driver and user history
+    for (let i = 0; i < 10; i++) {
+      await Promise.all([
+        this.historyService.createHistory(driver._id, {
+          title: 'New Order',
+          description: 'Drop-off Point',
+          amount: createdOrders[0].orderAmount,
+          type: HistoryTypeEnum.Order,
+          status: DeliveryCompleted,
+          fromLocation: createdOrders[0].pickupAddress,
+          toLocation: createdOrders[0].destinationAddress,
+          orderId: createdOrders[0]._id,
+        }),
+
+        this.historyService.createHistory(user._id, {
+          title: 'New Order',
+          description: 'Drop-off Point',
+          amount: createdOrders[0].orderAmount,
+          type: HistoryTypeEnum.Order,
+          status: DeliveryCompleted,
+          fromLocation: createdOrders[0].pickupAddress,
+          toLocation: createdOrders[0].destinationAddress,
+          orderId: createdOrders[0]._id,
+        }),
+      ]);
     }
 
     return {

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import {HistoryTypeEnum} from "../../../../common/constants/history.constants";
+import { HistoryTypeEnum } from '../../../../common/constants/history.constants';
 
 export type HistoryDocument = History &
   Document & {
@@ -16,7 +16,7 @@ export class History {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true, trim: true, type: "string", enum: HistoryTypeEnum })
+  @Prop({ required: true, trim: true, type: 'string', enum: HistoryTypeEnum })
   type: HistoryTypeEnum;
 
   @Prop({ required: true })
