@@ -177,8 +177,20 @@ export class OrderGateway
       orderStatus: OrderStatus.COMPLETED,
     });
 
-    // create history
+    // create user history
     await this.historyService.createHistory(order.userId, {
+      title: 'New Order',
+      description: 'Drop-off Point',
+      amount: order.orderAmount,
+      type: HistoryTypeEnum.Order,
+      status: DeliveryCompleted,
+      fromLocation: order.pickupAddress,
+      toLocation: order.destinationAddress,
+      orderId: order._id,
+    });
+
+    // create driver history
+    await this.historyService.createHistory(order.driverId, {
       title: 'New Order',
       description: 'Drop-off Point',
       amount: order.orderAmount,

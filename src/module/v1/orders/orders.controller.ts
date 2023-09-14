@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, Res} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
@@ -28,46 +28,45 @@ export class OrdersController {
 
   @Get()
   async getUserOrders(
-      @LoggedInUser() user: ILoggedInUser,
-      @Res() res: Response
+    @LoggedInUser() user: ILoggedInUser,
+    @Res() res: Response,
   ) {
     const orders = await this.ordersService.getUserOrders(user._id);
 
     return res.status(200).json({
       success: true,
       data: orders,
-      message: "records fetched successfully"
-    })
+      message: 'records fetched successfully',
+    });
   }
 
   @Get(':id')
   async getUserOrderById(
-        @LoggedInUser() user: ILoggedInUser,
-        @Res() res: Response,
-        @Param('id') id: string
+    @LoggedInUser() user: ILoggedInUser,
+    @Res() res: Response,
+    @Param('id') id: string,
   ) {
     const order = await this.ordersService.getOrderById(id);
 
     return res.status(200).json({
       success: true,
       data: order,
-      message: "record fetched successfully"
-    })
+      message: 'record fetched successfully',
+    });
   }
 
   @Post('cancel/:id')
   async cancelOrder(
-      @LoggedInUser() user: ILoggedInUser,
-      @Res() res: Response,
-      @Param('id') id: string
+    @LoggedInUser() user: ILoggedInUser,
+    @Res() res: Response,
+    @Param('id') id: string,
   ) {
     const order = await this.ordersService.cancelOrder(id, user._id);
 
     return res.status(200).json({
       success: true,
       data: order,
-      message: "order cancelled successfully"
-    })
+      message: 'order cancelled successfully',
+    });
   }
-
 }

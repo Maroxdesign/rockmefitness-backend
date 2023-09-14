@@ -1,16 +1,27 @@
-import {BadRequestException, forwardRef, Inject, Injectable, NotFoundException,} from '@nestjs/common';
-import {InjectModel} from '@nestjs/mongoose';
-import {Order, OrderDocument} from './schema/order.schema';
-import {Model} from 'mongoose';
-import {CreateOrderDto} from './dto/create-order.dto';
-import {UpdateOrderDto} from './dto/update-order.dto';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Order, OrderDocument } from './schema/order.schema';
+import { Model } from 'mongoose';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import axios from 'axios';
-import {config} from 'dotenv';
-import {PaymentService} from '../payment/payment.service';
-import {UserService} from '../user/user.service';
-import {HistoryService} from "../history/history.service";
-import {HistoryTypeEnum, OrderCanceled, PendingPayment} from "../../../common/constants/history.constants";
-import {OrderStatus} from "../../../common/constants/order.constants";
+import { config } from 'dotenv';
+import { PaymentService } from '../payment/payment.service';
+import { UserService } from '../user/user.service';
+import { HistoryService } from '../history/history.service';
+import {
+  HistoryTypeEnum,
+  OrderCanceled,
+  PendingPayment,
+} from '../../../common/constants/history.constants';
+import { OrderStatus } from '../../../common/constants/order.constants';
+import { RoleEnum } from '../../../common/constants/user.constants';
 
 config();
 
@@ -23,7 +34,7 @@ export class OrdersService {
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
     private userService: UserService,
-    private historyService: HistoryService
+    private historyService: HistoryService,
   ) {}
 
   async create(userId: string, payload: CreateOrderDto) {
@@ -38,18 +49,18 @@ export class OrdersService {
         ...payload,
         userId,
       });
-      
+
       // create history
       await this.historyService.createHistory(userId, {
-        title: "New Order",
-        description: "Drop-off Point",
+        title: 'New Order',
+        description: 'Drop-off Point',
         amount: payload.orderAmount,
         type: HistoryTypeEnum.Order,
         status: PendingPayment,
         fromLocation: payload.pickupAddress,
         toLocation: payload.destinationAddress,
-        orderId: order._id
-      })
+        orderId: order._id,
+      });
 
       return await this.paymentService.initializePaystackPayment(
         {
@@ -68,6 +79,16 @@ export class OrdersService {
   }
 
   async getUserOrders(userId: string): Promise<OrderDocument[]> {
+    const user = await this.userService.findById(userId);
+
+    if (!user) {
+      return null;
+    }
+
+    if (user.role === RoleEnum.RIDER) {
+      return this.orderModel.find({ driverId: userId });
+    }
+
     return this.orderModel.find({ userId });
   }
 
@@ -128,35 +149,39 @@ export class OrdersService {
     }
 
     if (order.userId.toString() !== userId.toString()) {
-      throw new BadRequestException('You are not authorized to cancel this order');
+      throw new BadRequestException(
+        'You are not authorized to cancel this order',
+      );
     }
 
-    if(order.driverId) {
-        throw new BadRequestException('You cannot cancel an order that has been assigned to a driver');
+    if (order.driverId) {
+      throw new BadRequestException(
+        'You cannot cancel an order that has been assigned to a driver',
+      );
     }
 
     // create history
     await this.historyService.createHistory(userId, {
-        title: "Order Cancelled",
-        description: "Drop-off Point",
-        amount: order.orderAmount / 100,
-        type: HistoryTypeEnum.Order,
-        fromLocation: order.pickupAddress,
-        toLocation: order.destinationAddress,
-        orderId: order._id,
-        status: OrderCanceled
-    })
+      title: 'Order Cancelled',
+      description: 'Drop-off Point',
+      amount: order.orderAmount / 100,
+      type: HistoryTypeEnum.Order,
+      fromLocation: order.pickupAddress,
+      toLocation: order.destinationAddress,
+      orderId: order._id,
+      status: OrderCanceled,
+    });
 
     return this.orderModel.findByIdAndUpdate(
-        {
-          _id: orderId,
-        },
-        {
-          orderStatus: OrderStatus.CANCELLED,
-        },
-        {
-          new: true,
-        },
+      {
+        _id: orderId,
+      },
+      {
+        orderStatus: OrderStatus.CANCELLED,
+      },
+      {
+        new: true,
+      },
     );
   }
 }
