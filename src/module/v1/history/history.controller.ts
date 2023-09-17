@@ -1,4 +1,4 @@
-import { Body, Controller, Res, Post, Get, Param } from '@nestjs/common';
+import { Body, Controller, Res, Post, Get, Param, Query } from '@nestjs/common';
 import { HistoryService } from './history.service';
 import { CreateHistoryDto } from './dto/create-history.dto';
 import {
@@ -6,6 +6,7 @@ import {
   LoggedInUser,
 } from '../../../common/decorator/user.decorator';
 import { Response } from 'express';
+import { HistoryQueryDto } from './dto/history-query.dto';
 
 @Controller('history')
 export class HistoryController {
@@ -32,10 +33,11 @@ export class HistoryController {
    */
   @Get()
   async getUserHistory(
+    @Query() query: HistoryQueryDto,
     @LoggedInUser() user: ILoggedInUser,
     @Res() res: Response,
   ) {
-    const history = await this.historyService.getUserHistory(user._id);
+    const history = await this.historyService.getUserHistory(user._id, query);
 
     return res.status(200).json({
       success: true,

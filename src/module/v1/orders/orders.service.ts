@@ -22,6 +22,7 @@ import {
 } from '../../../common/constants/history.constants';
 import { OrderStatus } from '../../../common/constants/order.constants';
 import { RoleEnum } from '../../../common/constants/user.constants';
+import { OrderQueryDto } from './dto/order-query.dto';
 
 config();
 
@@ -78,18 +79,39 @@ export class OrdersService {
     }
   }
 
-  async getUserOrders(userId: string): Promise<OrderDocument[]> {
+  async getUserOrders(userId: string, query?: OrderQueryDto) {
+    let { page, limit } = query;
+
+    page = Number(page) ? Number(page) : 1;
+    limit = Number(limit) ? Number(limit) : 10;
+
     const user = await this.userService.findById(userId);
 
     if (!user) {
       return null;
     }
 
-    if (user.role === RoleEnum.RIDER) {
-      return this.orderModel.find({ driverId: userId });
-    }
+    const [result, count] = await Promise.all([
+      this.orderModel
+        .find({
+          ...(user.role === RoleEnum.RIDER ? { driverId: userId } : { userId }),
+        })
+        .skip(limit * (page - 1))
+        .limit(limit),
 
-    return this.orderModel.find({ userId });
+      this.orderModel.countDocuments({
+        ...(user.role === RoleEnum.RIDER ? { driverId: userId } : { userId }),
+      }),
+    ]);
+
+    return {
+      data: result,
+      pagination: {
+        total: count,
+        limit,
+        page,
+      },
+    };
   }
 
   async getOrderById(orderId: string): Promise<OrderDocument> {

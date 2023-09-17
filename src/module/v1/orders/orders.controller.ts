@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
@@ -6,6 +6,7 @@ import {
   LoggedInUser,
 } from 'src/common/decorator/user.decorator';
 import { Response } from 'express';
+import { OrderQueryDto } from './dto/order-query.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -28,10 +29,11 @@ export class OrdersController {
 
   @Get()
   async getUserOrders(
+    @Query() query: OrderQueryDto,
     @LoggedInUser() user: ILoggedInUser,
     @Res() res: Response,
   ) {
-    const orders = await this.ordersService.getUserOrders(user._id);
+    const orders = await this.ordersService.getUserOrders(user._id, query);
 
     return res.status(200).json({
       success: true,

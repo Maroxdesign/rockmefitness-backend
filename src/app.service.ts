@@ -176,23 +176,23 @@ export class AppService {
         this.historyService.createHistory(driver._id, {
           title: 'New Order',
           description: 'Drop-off Point',
-          amount: createdOrders[0].orderAmount,
+          amount: orders[0].amount,
           type: HistoryTypeEnum.Order,
           status: DeliveryCompleted,
-          fromLocation: createdOrders[0].pickupAddress,
-          toLocation: createdOrders[0].destinationAddress,
-          orderId: createdOrders[0]._id,
+          fromLocation: orders[0].pickupAddress,
+          toLocation: orders[0].destinationAddress,
+          orderId: user._id,
         }),
 
         this.historyService.createHistory(user._id, {
           title: 'New Order',
           description: 'Drop-off Point',
-          amount: createdOrders[0].orderAmount,
+          amount: orders[0].amount,
           type: HistoryTypeEnum.Order,
           status: DeliveryCompleted,
-          fromLocation: createdOrders[0].pickupAddress,
-          toLocation: createdOrders[0].destinationAddress,
-          orderId: createdOrders[0]._id,
+          fromLocation: orders[0].pickupAddress,
+          toLocation: orders[0].destinationAddress,
+          orderId: user._id,
         }),
       ]);
     }
