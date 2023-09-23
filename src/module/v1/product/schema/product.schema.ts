@@ -32,6 +32,9 @@ export class Product {
   @Prop()
   image: string;
 
+  @Prop()
+  size: string;
+
   @Prop({
     enum: [CategoryEnum.MEN, CategoryEnum.WOMEN],
   })
