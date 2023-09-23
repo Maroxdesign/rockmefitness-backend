@@ -10,13 +10,8 @@ import { OtpModule } from './module/v1/otp/otp.module';
 import { TokenModule } from './module/v1/token/token.module';
 import { UserModule } from './module/v1/user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { SupportModule } from './module/v1/support/support.module';
-import { RatingModule } from './module/v1/rating/rating.module';
-import { RidesModule } from './module/v1/rides/rides.module';
-import { OrdersModule } from './module/v1/orders/orders.module';
-import { PaymentModule } from './module/v1/payment/payment.module';
-import { HistoryModule } from './module/v1/history/history.module';
 import { AppController } from './app.controller';
+import { ProductModule } from './module/v1/product/product.module';
 
 @Module({
   imports: [
@@ -38,12 +33,7 @@ import { AppController } from './app.controller';
     OtpModule,
     MailModule,
     TokenModule,
-    SupportModule,
-    RatingModule,
-    RidesModule,
-    OrdersModule,
-    PaymentModule,
-    HistoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -15,6 +15,7 @@ import { User, UserDocument } from './schema/user.schema';
 import { QueryDto } from './dto/query.dto';
 import { TokenService } from '../token/token.service';
 import { SpacesService } from '../spaces/spaces.service';
+import { GenderEnum, RoleEnum } from '../../../common/constants/user.constants';
 
 @Injectable()
 export class UserService {
@@ -96,10 +97,6 @@ export class UserService {
     return updateUser;
   }
 
-  async comparePin(pin: string, currentPin: string) {
-    return await bcrypt.compare(pin, currentPin);
-  }
-
   async comparePassword(password: string, currentPassword: string) {
     return await bcrypt.compare(password, currentPassword);
   }
@@ -174,37 +171,10 @@ export class UserService {
     return user;
   }
 
-  async walletCheck(amount: number, user: UserDocument) {
-    if (Number(user.wallet) < 0) {
-      await this.userModel.findByIdAndUpdate(
-        user._id,
-        { suspend: true },
-        {
-          new: true,
-        },
-      );
-
-      throw new InternalServerErrorException(
-        'You have been suspend. Please contact support.',
-      );
-    }
-    if (amount > user.wallet || user.wallet <= 0) {
-      throw new BadRequestException(
-        'Topup your wallet to continue this transaction',
-      );
-    }
-  }
-
   async count() {
-    const [allUser, verifiedUser, unverifiedUser, suspendedUser] =
-      await Promise.all([
-        this.userModel.countDocuments(),
-        this.userModel.countDocuments({ 'verification.bvn': true }),
-        this.userModel.countDocuments({ 'verification.bvn': false }),
-        this.userModel.countDocuments({ suspend: true }),
-      ]);
+    const [allUser] = await Promise.all([this.userModel.countDocuments()]);
 
-    return { allUser, verifiedUser, unverifiedUser, suspendedUser };
+    return { allUser };
   }
 
   async sumWalletBalance() {
@@ -454,131 +424,31 @@ export class UserService {
     return { startDate, endDate, data };
   };
 
-  async updateVehicle(id, requestData, files = null) {
-    const { carModel, manufactureYear, plateNumber, color } = requestData;
-
-    const [imageUrl] = await Promise.all([
-      this.spacesService.uploadFile(files?.image?.length > 0 && files.image[0]),
-    ]);
-
-    const uploadUrls = {
-      'vehicle.image': imageUrl,
-    };
-
-    const queryParams = {
-      'vehicle.carModel': carModel,
-      'vehicle.manufactureYear': manufactureYear,
-      'vehicle.plateNumber': plateNumber,
-      'vehicle.color': color,
-    };
-
-    const data = { ...queryParams, ...uploadUrls };
-
-    try {
-      const vehicle: any = await this.userModel.findByIdAndUpdate(id, data, {
-        new: true,
-      });
-
-      if (!vehicle) throw new NotFoundException('Vehicle not found');
-
-      return vehicle;
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
-  }
-
-  async updateKycBank(id, requestData, files = null) {
-    const { type, bankName, accountNumber, accountType, accountName } =
-      requestData;
-
-    const [frontUrl, backUrl, selfieUrl] = await Promise.all([
-      this.spacesService.uploadFile(files?.front?.length > 0 && files.front[0]),
-      this.spacesService.uploadFile(files?.back?.length > 0 && files.back[0]),
-      this.spacesService.uploadFile(
-        files?.selfie?.length > 0 && files.selfie[0],
-      ),
-    ]);
-
-    const uploadUrls = {
-      'kyc.front': frontUrl,
-      'kyc.back': backUrl,
-      'kyc.selfie': selfieUrl,
-    };
-
-    const queryParams = {
-      'kyc.type': type,
-      'account.bankName': bankName,
-      'account.accountNumber': accountNumber,
-      'account.accountName': accountName,
-      'account.accountType': accountType,
-    };
-
-    const data = { ...queryParams, ...uploadUrls };
-
-    try {
-      const kycBank: any = await this.userModel.findByIdAndUpdate(id, data, {
-        new: true,
-      });
-
-      if (!kycBank) throw new NotFoundException('Kyc&Bank not found');
-
-      return kycBank;
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
-  }
-
-  async switchAvailability(id, request): Promise<UserDocument> {
-    const user = await this.userModel.findByIdAndUpdate(id, request, {
-      new: true,
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
-  }
-
-  async updateUserLocation(
-    driverId: string,
-    longitude: number,
-    latitude: number,
-  ): Promise<UserDocument> {
-    return this.userModel.findByIdAndUpdate(
-      { _id: driverId },
-      {
-        $set: {
-          location: {
-            type: 'Point',
-            coordinates: [longitude, latitude],
-          },
-        },
-      },
-      { new: true },
-    );
-  }
-
-  async updateProfileImage(userId: string, file: Express.Multer.File) {
-    const userExist = await this.userModel.count({
-      _id: userId,
-    });
-
-    if (userExist <= 0) {
-      throw new NotFoundException('User not found');
-    }
-
-    const url = await this.spacesService.uploadFile(file);
-
-    await this.userModel.updateMany(
-      {
-        _id: userId,
-      },
-      {
-        profileImage: url,
-      },
-    );
-  }
-
   async deleteUser(email: string) {
     await this.userModel.findOneAndDelete({ email });
+  }
+
+  async seedAdmin() {
+    try {
+      const admin = await this.userModel.findOne({
+        role: RoleEnum.ADMIN,
+      });
+
+      if (admin) {
+        throw new BadRequestException('Admin already exist');
+      }
+
+      return await this.userModel.create({
+        firstName: 'Admin',
+        lastName: 'Admin',
+        email: 'admin@gmail.com',
+        password: await this.hashData('password'),
+        phone: '08080808080',
+        gender: GenderEnum.MALE,
+        role: RoleEnum.ADMIN,
+      });
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
   }
 }

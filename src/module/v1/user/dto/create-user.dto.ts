@@ -28,12 +28,9 @@ export class CreateUserDto {
   role: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(6)
   @MaxLength(20)
   password: string;
-
-  @IsString()
-  city: string;
 
   @IsString()
   gender: string;
@@ -53,7 +50,3 @@ export class TokenDto {
   user: string;
 }
 
-
-export class Vehicle {
-  
-}

@@ -52,33 +52,7 @@ export class AuthService {
       generator: generateIdentifier(),
     });
     await this.tokenService.create({ user: user._id, token: accessToken });
-    await this.otpService.create(user.email, OtpEnum.EMAIL);
-    return {
-      user,
-      accessToken,
-    };
-  }
-
-  async registerRider(
-    requestPayload: Readonly<CreateUserDto>,
-  ): Promise<IAuthResponse> {
-    const { password } = requestPayload;
-    const role = RoleEnum.RIDER;
-    const hash = await this.hashPassword(password);
-    const user = await this.userService.create({
-      role: role,
-      ...requestPayload,
-      password: hash,
-    });
-
-    const accessToken = this.jwtService.sign({
-      _id: user._id,
-      role: user.role,
-      generator: generateIdentifier(),
-    });
-
-    await this.tokenService.create({ user: user._id, token: accessToken });
-    await this.otpService.create(user.email, OtpEnum.EMAIL);
+    // await this.otpService.create(user.email, OtpEnum.EMAIL);
     return {
       user,
       accessToken,
@@ -115,7 +89,9 @@ export class AuthService {
   async checkEmail(email: string): Promise<OtpDocument> {
     const user = await this.userModel.findOne({ email });
     if (user) {
-      throw new BadRequestException('This email already exist in expressRyder');
+      throw new BadRequestException(
+        'This email already exist in our application',
+      );
     }
     return;
   }

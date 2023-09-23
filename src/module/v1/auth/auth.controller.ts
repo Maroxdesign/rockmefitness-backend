@@ -4,7 +4,6 @@ import { OtpEnum } from 'src/common/constants/otp.enum';
 import {
   FORGOT_PWD_RESET,
   LOGGED_IN,
-  RIDER_CREATED,
   USER_CREATED,
 } from 'src/common/constants/user.constants';
 import { Public } from 'src/common/decorator/public.decorator';
@@ -24,21 +23,12 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Post('customer/register')
+  @Post('register')
   @ResponseMessage(USER_CREATED)
   async register(
     @Body() requestPayload: CreateUserDto,
   ): Promise<IAuthResponse> {
     return await this.authService.register(requestPayload);
-  }
-
-  @Public()
-  @Post('rider/register')
-  @ResponseMessage(RIDER_CREATED)
-  async registerRider(
-    @Body() requestPayload: CreateUserDto,
-  ): Promise<IAuthResponse> {
-    return await this.authService.registerRider(requestPayload);
   }
 
   @Public()
