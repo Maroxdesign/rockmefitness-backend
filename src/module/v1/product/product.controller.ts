@@ -24,6 +24,7 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../../../common/decorator/roles.decorator';
 import { ProductDto } from './dto/product.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('product')
 export class ProductController {
@@ -43,9 +44,16 @@ export class ProductController {
     return await this.productService.create(requestData, files);
   }
 
+  @Public()
   @Get()
   async paginate(@Query() queryData) {
     return await this.productService.paginate(queryData);
+  }
+
+  @Public()
+  @Get(':id')
+  async getSingleProduct(@Param('id') id: string) {
+    return await this.productService.getSingleProduct(id);
   }
 
   @ResponseMessage(PRODUCT_DELETED)
