@@ -93,4 +93,16 @@ export class ProductService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async getSingleProduct(id) {
+    const product = await this.productModel.findOne({
+      _id: id,
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
+  }
 }
