@@ -14,6 +14,7 @@ import { OtpModule } from '../otp/otp.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../user/schema/user.schema';
 import { TokenModule } from '../token/token.module';
+import { Cart, CartSchema } from '../cart/schema/cart.schema';
 
 @Module({
   imports: [
@@ -21,7 +22,10 @@ import { TokenModule } from '../token/token.module';
     OtpModule,
     PassportModule,
     TokenModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Cart.name, schema: CartSchema },
+    ]),
     {
       ...JwtModule.register({
         secret: environment.JWT.SECRET,

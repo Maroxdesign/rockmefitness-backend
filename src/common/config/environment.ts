@@ -36,6 +36,11 @@ interface IEnvironment {
     CLIENT_EMAIL: string;
   };
   SENDGRID: string;
+  BRAINTREE: {
+    MERCHANT_ID: string;
+    PRIVATE_KEY: string;
+    PUBLIC_KEY: string;
+  };
 }
 
 export const environment: IEnvironment = {
@@ -70,6 +75,11 @@ export const environment: IEnvironment = {
     PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
     PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
     CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+  },
+  BRAINTREE: {
+    MERCHANT_ID: process.env.BRAINTREE_MERCHANT_ID,
+    PRIVATE_KEY: process.env.BRAINTREE_PRIVATE_KEY,
+    PUBLIC_KEY: process.env.BRAINTREE_PUBLIC_KEY,
   },
   SENDGRID: process.env.SENDGRID_KEY,
 };

@@ -10,67 +10,182 @@ export class CartService {
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
-  async addProductToCart(id, user) {
+
+  async addProductToCart(data, user) {
     try {
-      const product = await this.productModel.findOne({
-        _id: id,
+      const { product, quantity } = data;
+
+      const checkIfProductExist = await this.productModel.findOne({
+        _id: product,
       });
 
-      if (!product) {
+      if (!checkIfProductExist) {
         throw new NotFoundException('Product not found');
       }
 
-      return await this.cartModel.create({
-        product: product._id,
-        user: user,
-        count: 1,
-      });
+      const subTotalPrice = quantity * checkIfProductExist.price;
+      const cart = await this.getUserCart(user._id);
+
+      if (cart) {
+        const itemIndex = cart.items.findIndex(
+          (item) => item.product == product,
+        );
+
+        if (itemIndex > -1) {
+          const item = cart.items[itemIndex];
+          item.quantity = Number(item.quantity) + Number(quantity);
+          item.subTotalPrice = item.quantity * checkIfProductExist.price; // Use the product's price for calculation
+
+          cart.items[itemIndex] = item;
+          await this.recalculateCart(cart);
+          cart.totalPrice = this.calculateTotalPrice(cart); // Recalculate the total price
+          return cart.save();
+        } else {
+          cart.items.push({ ...data, subTotalPrice });
+          await this.recalculateCart(cart);
+          cart.totalPrice = this.calculateTotalPrice(cart); // Recalculate the total price
+          return cart.save();
+        }
+      }
+
+      return cart;
     } catch (e) {
       throw new Error(e.message);
     }
   }
 
-  async showCartItems(query: any, user) {
-    let { currentPage, size, sort } = query;
-
-    currentPage = Number(currentPage) ? parseInt(currentPage) : 1;
-    size = Number(size) ? parseInt(size) : 10;
-    sort = sort ? sort : 'desc';
-
-    delete query.currentPage;
-    delete query.size;
-    delete query.sort;
-
-    const count = await this.cartModel.count({
-      user: user._id,
-    });
-    const response = await this.cartModel
-      .find({ user: user._id })
-      .populate('product')
-      .skip(size * (currentPage - 1))
-      .limit(size)
-      .sort({ createdAt: sort });
-
-    return {
-      response,
-      pagination: {
-        total: count,
-        currentPage,
-        size,
-      },
-    };
+  private calculateTotalPrice(cart: Cart): number {
+    // Calculate the total price based on the items in the cart
+    return cart.items.reduce((total, item) => total + item.subTotalPrice, 0);
   }
 
-  async removeProductFromCart(id, user) {
-    const cartItem = await this.cartModel.findOneAndDelete({
-      product: id,
-      user: user._id,
+  private recalculateCart(cart: CartDocument) {
+    cart.totalPrice = 0;
+    cart.items.forEach((item) => {
+      cart.totalPrice += item.quantity * item.price;
+    });
+  }
+
+  async getUserCart(userId: string): Promise<CartDocument> {
+    const cart = await this.cartModel.findOne({ user: userId }).populate({
+      path: 'items.product', // Populate the 'product' field in 'items' array
+      model: 'Product', // Replace with the name of your Product model
     });
 
-    if (!cartItem) {
-      throw new NotFoundException('Cannot delete another user product in cart');
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
     }
 
-    return;
+    return cart;
+  }
+
+  async showUserCart(query: any, user) {
+    const cart = await this.getUserCart(user._id);
+
+    return cart;
+  }
+
+  async removeItemFromCart(productId, user): Promise<any> {
+    const cart = await this.getUserCart(user._id);
+
+    const itemIndex = cart.items.findIndex((item) => item.product == productId);
+
+    if (itemIndex > -1) {
+      cart.items.splice(itemIndex, 1);
+      await this.recalculateCart(cart);
+      cart.totalPrice = this.calculateTotalPrice(cart);
+      await cart.save();
+      return cart;
+    }
+  }
+
+  async increaseQuantity(productId, user) {
+    try {
+      const cart = await this.getUserCart(user._id);
+
+      const existingItemIndex = cart.items.findIndex(
+        (item) => item.product == productId,
+      );
+
+      if (existingItemIndex !== -1) {
+        const existingItem = cart.items[existingItemIndex];
+
+        // Load the product details from the database
+        const product = await this.productModel.findById(productId);
+
+        if (!product) {
+          throw new NotFoundException('Product not found');
+        }
+
+        existingItem.product = product._id;
+        existingItem.quantity++;
+
+        // Calculate the subTotalPrice using the loaded product's price
+        existingItem.subTotalPrice = existingItem.quantity * product.price;
+
+        // Update the item in the cart
+        cart.items[existingItemIndex] = existingItem;
+
+        // Recalculate the cart and update the total price
+        this.recalculateCart(cart);
+
+        cart.totalPrice = this.calculateTotalPrice(cart);
+
+        // Save the cart with the updated item
+        await cart.save();
+
+        return cart;
+      } else {
+        throw new NotFoundException('Product not found in the cart');
+      }
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async decreaseQuantity(productId, user) {
+    try {
+      const cart = await this.getUserCart(user._id);
+
+      const existingItemIndex = cart.items.findIndex(
+        (item) => item.product == productId,
+      );
+
+      if (existingItemIndex !== -1) {
+        const existingItem = cart.items[existingItemIndex];
+
+        // Load the product details from the database
+        const product = await this.productModel.findById(productId);
+
+        if (!product) {
+          throw new NotFoundException('Product not found');
+        }
+
+        existingItem.product = product._id;
+        existingItem.quantity--;
+
+        // Calculate the subTotalPrice using the loaded product's price
+        existingItem.subTotalPrice = existingItem.quantity * product.price;
+
+        // Update the item in the cart
+        cart.items[existingItemIndex] = existingItem;
+
+        // Recalculate the cart and update the total price
+        this.recalculateCart(cart);
+
+        cart.totalPrice = this.calculateTotalPrice(cart);
+
+        // Save the cart with the updated item
+        await cart.save();
+
+        console.log(cart);
+
+        return cart;
+      } else {
+        throw new NotFoundException('Product not found in the cart');
+      }
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }
