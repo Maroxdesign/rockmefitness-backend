@@ -8,10 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { OtpEnum } from 'src/common/constants/otp.enum';
-import {
-  generateIdentifier,
-  randomFourDigitNumber,
-} from 'src/common/utils/uniqueId';
+import { generateIdentifier } from 'src/common/utils/uniqueId';
 import { OtpService } from '../otp/otp.service';
 import { OtpDocument } from '../otp/schema/otp.schema';
 import { TokenService } from '../token/token.service';
@@ -22,11 +19,15 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordResetDto } from './dto/password.dto';
 import { IAuthResponse } from './interface/auth.interface';
 import { RoleEnum } from '../../../common/constants/user.constants';
+import { Cart, CartDocument } from '../cart/schema/cart.schema';
+import { ExtractJwt } from 'passport-jwt';
+import fromAuthHeaderWithScheme = ExtractJwt.fromAuthHeaderWithScheme;
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
     private userService: UserService,
     private otpService: OtpService,
     private jwtService: JwtService,
@@ -51,6 +52,11 @@ export class AuthService {
       role: user.role,
       generator: generateIdentifier(),
     });
+
+    await this.cartModel.create({
+      user: user._id,
+    });
+
     await this.tokenService.create({ user: user._id, token: accessToken });
     // await this.otpService.create(user.email, OtpEnum.EMAIL);
     return {

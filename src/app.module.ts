@@ -13,6 +13,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { ProductModule } from './module/v1/product/product.module';
 import { CartModule } from './module/v1/cart/cart.module';
+import { PaymentModule } from './module/v1/payment/payment.module';
+import { OrderModule } from './module/v1/order/order.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { CartModule } from './module/v1/cart/cart.module';
     TokenModule,
     ProductModule,
     CartModule,
+    PaymentModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

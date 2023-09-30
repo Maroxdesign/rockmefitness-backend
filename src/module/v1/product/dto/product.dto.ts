@@ -19,6 +19,9 @@ export class ProductDto {
   @IsString()
   category: string;
 
+  @IsString()
+  size: string;
+
   @IsNumberString()
   price: number;
 }
