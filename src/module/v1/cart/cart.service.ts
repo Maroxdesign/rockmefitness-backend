@@ -99,9 +99,15 @@ export class CartService {
     }
   }
 
+  async cart(user) {
+    const cart = await this.cartModel.findOne({ user: user });
+
+    return cart;
+  }
+
   async increaseQuantity(productId, user) {
     try {
-      const cart = await this.getUserCart(user._id);
+      const cart = await this.cart(user._id);
 
       const existingItemIndex = cart.items.findIndex(
         (item) => item.product == productId,
@@ -111,7 +117,9 @@ export class CartService {
         const existingItem = cart.items[existingItemIndex];
 
         // Load the product details from the database
-        const product = await this.productModel.findById(productId);
+        const product = await this.productModel.findOne({
+          _id: productId,
+        });
 
         if (!product) {
           throw new NotFoundException('Product not found');
@@ -145,7 +153,7 @@ export class CartService {
 
   async decreaseQuantity(productId, user) {
     try {
-      const cart = await this.getUserCart(user._id);
+      const cart = await this.cart(user._id);
 
       const existingItemIndex = cart.items.findIndex(
         (item) => item.product == productId,
