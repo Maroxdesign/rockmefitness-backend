@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { Cart } from '../../cart/schema/cart.schema';
+import { User } from '../../user/schema/user.schema';
 
 export type OrderDocument = Order &
   Document & {
@@ -18,6 +19,9 @@ export class Order {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Cart.name })
   cart?: Cart;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
+  user?: User;
 
   @Prop()
   status: string;

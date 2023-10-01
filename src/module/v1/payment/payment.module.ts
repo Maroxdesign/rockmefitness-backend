@@ -23,5 +23,6 @@ import { environment } from '../../../common/config/environment';
     },
   ],
   controllers: [PaymentController],
+  exports: [PaymentService],
 })
 export class PaymentModule {}

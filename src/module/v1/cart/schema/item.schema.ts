@@ -9,12 +9,6 @@ export class Item {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
   product?: Product;
 
-  // @Prop()
-  // product: {
-  //   type: mongoose.Schema.Types.ObjectId;
-  //   ref: 'Product';
-  // };
-
   @Prop()
   name: string;
 
