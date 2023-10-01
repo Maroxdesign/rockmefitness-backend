@@ -1,7 +1,20 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { TOKEN_GENERATED_SUCCESSFULLY } from '../../../common/constants/payment';
 import { ResponseMessage } from '../../../common/decorator/response.decorator';
+import { DATA_FETCH } from '../../../common/constants/product.constants';
+import { JwtAuthGuard } from '../auth/guard/jwt.guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { RoleEnum } from '../../../common/constants/user.constants';
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
@@ -18,7 +31,21 @@ export class PaymentController {
   }
 
   @Post('process_payment')
-  async processPayment(@Body() paymentData) {
-    return await this.paymentService.processPayment(paymentData);
+  async processPayment(@Body() paymentData, @Req() req) {
+    return await this.paymentService.processPayment(paymentData, req.user);
+  }
+
+  @ResponseMessage(DATA_FETCH)
+  @Get('user')
+  async getUserPayments(@Query() queryData, @Req() req) {
+    return await this.paymentService.getUserPayments(queryData, req.user);
+  }
+
+  @ResponseMessage(DATA_FETCH)
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN)
+  async paginate(@Query() queryData) {
+    return await this.paymentService.paginate(queryData);
   }
 }
