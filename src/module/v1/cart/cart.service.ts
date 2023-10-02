@@ -42,9 +42,9 @@ export class CartService {
           (item) => item.product == product,
         );
 
-        if (itemIndex) {
-          throw new BadRequestException(`Product already exist in cart`);
-        }
+        // if (itemIndex) {
+        //   throw new BadRequestException(`Product already exist in cart`);
+        // }
 
         if (itemIndex > -1) {
           const item = cart.items[itemIndex];
