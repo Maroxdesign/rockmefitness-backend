@@ -24,4 +24,7 @@ export class ProductDto {
 
   @IsNumberString()
   price: number;
+
+  @IsNumberString()
+  quantity: number;
 }

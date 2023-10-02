@@ -35,6 +35,9 @@ export class Product {
   @Prop()
   size: string;
 
+  @Prop()
+  quantity: number;
+
   @Prop({
     enum: [CategoryEnum.MEN, CategoryEnum.WOMEN],
   })
