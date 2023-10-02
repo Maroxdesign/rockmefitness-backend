@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Cart, CartDocument } from './schema/cart.schema';
@@ -23,6 +28,12 @@ export class CartService {
         throw new NotFoundException('Product not found');
       }
 
+      if (quantity > checkIfProductExist.quantity) {
+        throw new BadRequestException(
+          `Cannot exceed product quantity limit ${checkIfProductExist.quantity}`,
+        );
+      }
+
       const subTotalPrice = quantity * checkIfProductExist.price;
       const cart = await this.getUserCart(user._id);
 
@@ -30,6 +41,10 @@ export class CartService {
         const itemIndex = cart.items.findIndex(
           (item) => item.product == product,
         );
+
+        if (itemIndex) {
+          throw new BadRequestException(`Product already exist in cart`);
+        }
 
         if (itemIndex > -1) {
           const item = cart.items[itemIndex];
@@ -50,7 +65,7 @@ export class CartService {
 
       return cart;
     } catch (e) {
-      throw new Error(e.message);
+      throw new BadRequestException(e.message); // Send a response to the client
     }
   }
 
@@ -68,8 +83,8 @@ export class CartService {
 
   async getUserCart(userId: string): Promise<CartDocument> {
     const cart = await this.cartModel.findOne({ user: userId }).populate({
-      path: 'items.product', // Populate the 'product' field in 'items' array
-      model: 'Product', // Replace with the name of your Product model
+      path: 'items.product',
+      model: 'Product',
     });
 
     if (!cart) {
@@ -88,14 +103,23 @@ export class CartService {
   async removeItemFromCart(productId, user): Promise<any> {
     const cart = await this.getUserCart(user._id);
 
+    // Find the index of the item with the matching productId
     const itemIndex = cart.items.findIndex((item) => item.product == productId);
 
-    if (itemIndex > -1) {
+    if (itemIndex == -1) {
+      // Remove the item from the array
       cart.items.splice(itemIndex, 1);
+
+      // Recalculate and update cart properties
       await this.recalculateCart(cart);
       cart.totalPrice = this.calculateTotalPrice(cart);
+
+      // Save the cart to update it in the database
       await cart.save();
+
       return cart;
+    } else {
+      throw new NotFoundException('Item not found in the cart.');
     }
   }
 
@@ -128,6 +152,12 @@ export class CartService {
         existingItem.product = product._id;
         existingItem.quantity++;
 
+        if (existingItem.quantity > product.quantity) {
+          throw new UnprocessableEntityException(
+            `Cannot exceed product quantity limit ${product.quantity}`,
+          );
+        }
+
         // Calculate the subTotalPrice using the loaded product's price
         existingItem.subTotalPrice = existingItem.quantity * product.price;
 
@@ -147,7 +177,7 @@ export class CartService {
         throw new NotFoundException('Product not found in the cart');
       }
     } catch (error) {
-      throw new Error(error.message);
+      throw new BadRequestException(error.message);
     }
   }
 
