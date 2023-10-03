@@ -14,5 +14,6 @@ import { Product, ProductSchema } from '../product/schema/product.schema';
   ],
   providers: [CartService],
   controllers: [CartController],
+  exports: [CartService],
 })
 export class CartModule {}

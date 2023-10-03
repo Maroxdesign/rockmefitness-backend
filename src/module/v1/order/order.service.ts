@@ -4,39 +4,59 @@ import { Model } from 'mongoose';
 import { Order, OrderDocument } from './schema/order.schema';
 import { Cart, CartDocument } from '../cart/schema/cart.schema';
 import { PaymentService } from '../payment/payment.service';
+import { CartService } from '../cart/cart.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
+
     private readonly paymentService: PaymentService,
+    private readonly cartService: CartService,
   ) {}
 
   async create(data, user) {
     try {
-      const { cartId } = data;
-
-      const cart = await this.cartModel.findOne({ _id: cartId });
+      const cart = await this.cartModel.findOne({ _id: data.cartId });
 
       if (!cart) {
         throw new NotFoundException('Cart not found');
       }
 
-      /** create an order **/
-      const order = await this.orderModel.create({
+      const deliveryData = {
+        'deliveryDetail.firstName': data.firstName,
+        'deliveryDetail.lastName': data.lastName,
+        'deliveryDetail.email': data.email,
+        'deliveryDetail.phone': data.phone,
+        'deliveryDetail.address': data.address,
+        'deliveryDetail.city': data.city,
+        'deliveryDetail.state': data.state,
+        'deliveryDetail.zipCode': data.zipCode,
+      };
+
+      const requestData = {
         amount: cart.totalPrice,
         user: user._id,
         cart: cart._id,
         status: 'pending',
         reference: await this.generateRandomCharacters(7),
-      });
+      };
+
+      const storageData = { ...requestData, ...deliveryData };
+
+      /** create an order **/
+      const order = await this.orderModel.create(storageData);
 
       /** process payment **/
       const payment = await this.paymentService.processPayment(order, user);
 
       if (payment) {
         order.status = 'success';
+        await order.save();
+        await this.clearCartItems(cart, user);
+      } else {
+        order.status = 'failed';
         await order.save();
       }
 
@@ -46,6 +66,12 @@ export class OrderService {
       };
     } catch (e) {
       throw new Error(e.message);
+    }
+  }
+
+  async clearCartItems(cart, user) {
+    for (const cartItem of cart.items) {
+      await this.cartService.removeItemFromCart(cartItem.product._id, user);
     }
   }
 
@@ -100,6 +126,13 @@ export class OrderService {
       .limit(size)
       .sort({ createdAt: sort })
       .populate('cart')
+      .populate({
+        path: 'cart',
+        populate: {
+          path: 'items.product',
+          model: 'Product',
+        },
+      })
       .populate('user');
 
     return {
@@ -128,5 +161,26 @@ export class OrderService {
     }
 
     return result;
+  }
+
+  async viewSingleOrder(orderId: string, user: any) {
+    const order = await this.orderModel
+      .findOne({
+        _id: orderId,
+        user: user._id,
+      })
+      .populate({
+        path: 'cart',
+        populate: {
+          path: 'items.product',
+          model: 'Product',
+        },
+      });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
   }
 }
