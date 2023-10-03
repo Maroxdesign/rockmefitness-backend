@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { Cart } from '../../cart/schema/cart.schema';
 import { User } from '../../user/schema/user.schema';
+import { DeliveryDetail } from './delivery-detail.schema';
 
 export type OrderDocument = Order &
   Document & {
@@ -25,6 +26,9 @@ export class Order {
 
   @Prop()
   status: string;
+
+  @Prop({ default: {} })
+  deliveryDetail: DeliveryDetail;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

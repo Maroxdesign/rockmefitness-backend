@@ -42,24 +42,20 @@ export class CartService {
           (item) => item.product == product,
         );
 
-        // if (itemIndex) {
-        //   throw new BadRequestException(`Product already exist in cart`);
-        // }
-
         if (itemIndex > -1) {
           const item = cart.items[itemIndex];
           item.quantity = Number(item.quantity) + Number(quantity);
-          item.subTotalPrice = item.quantity * checkIfProductExist.price; // Use the product's price for calculation
+          item.subTotalPrice = item.quantity * checkIfProductExist.price;
 
           cart.items[itemIndex] = item;
           await this.recalculateCart(cart);
-          cart.totalPrice = this.calculateTotalPrice(cart); // Recalculate the total price
+          cart.totalPrice = this.calculateTotalPrice(cart);
           return cart.save();
         } else {
           cart.items.push({ ...data, subTotalPrice });
           await this.recalculateCart(cart);
-          cart.totalPrice = this.calculateTotalPrice(cart); // Recalculate the total price
-          return cart.save();
+          cart.totalPrice = this.calculateTotalPrice(cart);
+          await cart.save();
         }
       }
 
@@ -108,7 +104,7 @@ export class CartService {
 
     if (itemIndex == -1) {
       // Remove the item from the array
-      cart.items.splice(itemIndex, 1);
+      cart.items.splice(itemIndex);
 
       // Recalculate and update cart properties
       await this.recalculateCart(cart);

@@ -2,7 +2,7 @@ import { OrderService } from './order.service';
 import {
   Body,
   Controller,
-  Get,
+  Get, Param,
   Post,
   Query,
   Req,
@@ -39,7 +39,13 @@ export class OrderController {
 
   @ResponseMessage(CREATE_ORDER)
   @Post()
-  async create(@Body() data: OrderDto, @Req() req) {
+  async create(@Body() data, @Req() req) {
     return await this.orderService.create(data, req.user);
+  }
+
+  @ResponseMessage(DATA_FETCH)
+  @Get(':orderId')
+  async viewSingleOrder(@Param('orderId') orderId: string, @Req() req) {
+    return await this.orderService.viewSingleOrder(orderId, req.user);
   }
 }

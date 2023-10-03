@@ -15,28 +15,44 @@ export class OrderService {
 
   async create(data, user) {
     try {
-      const { cartId } = data;
-
-      const cart = await this.cartModel.findOne({ _id: cartId });
+      const cart = await this.cartModel.findOne({ _id: data.cartId });
 
       if (!cart) {
         throw new NotFoundException('Cart not found');
       }
 
-      /** create an order **/
-      const order = await this.orderModel.create({
+      const deliveryData = {
+        'deliveryDetail.firstName': data.firstName,
+        'deliveryDetail.lastName': data.lastName,
+        'deliveryDetail.email': data.email,
+        'deliveryDetail.phone': data.phone,
+        'deliveryDetail.address': data.address,
+        'deliveryDetail.city': data.city,
+        'deliveryDetail.state': data.state,
+        'deliveryDetail.zipCode': data.zipCode,
+      };
+
+      const requestData = {
         amount: cart.totalPrice,
         user: user._id,
         cart: cart._id,
         status: 'pending',
         reference: await this.generateRandomCharacters(7),
-      });
+      };
+
+      const storageData = { ...requestData, ...deliveryData };
+
+      /** create an order **/
+      const order = await this.orderModel.create(storageData);
 
       /** process payment **/
       const payment = await this.paymentService.processPayment(order, user);
 
       if (payment) {
         order.status = 'success';
+        await order.save();
+      } else {
+        order.status = 'failed';
         await order.save();
       }
 
@@ -100,6 +116,13 @@ export class OrderService {
       .limit(size)
       .sort({ createdAt: sort })
       .populate('cart')
+      .populate({
+        path: 'cart',
+        populate: {
+          path: 'items.product',
+          model: 'Product',
+        },
+      })
       .populate('user');
 
     return {
@@ -128,5 +151,26 @@ export class OrderService {
     }
 
     return result;
+  }
+
+  async viewSingleOrder(orderId: string, user: any) {
+    const order = await this.orderModel
+      .findOne({
+        _id: orderId,
+        user: user._id,
+      })
+      .populate({
+        path: 'cart',
+        populate: {
+          path: 'items.product',
+          model: 'Product',
+        },
+      });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
   }
 }
