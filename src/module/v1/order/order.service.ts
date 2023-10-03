@@ -4,13 +4,16 @@ import { Model } from 'mongoose';
 import { Order, OrderDocument } from './schema/order.schema';
 import { Cart, CartDocument } from '../cart/schema/cart.schema';
 import { PaymentService } from '../payment/payment.service';
+import { CartService } from '../cart/cart.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
+
     private readonly paymentService: PaymentService,
+    private readonly cartService: CartService,
   ) {}
 
   async create(data, user) {
@@ -51,6 +54,7 @@ export class OrderService {
       if (payment) {
         order.status = 'success';
         await order.save();
+        await this.clearCartItems(cart, user);
       } else {
         order.status = 'failed';
         await order.save();
@@ -62,6 +66,12 @@ export class OrderService {
       };
     } catch (e) {
       throw new Error(e.message);
+    }
+  }
+
+  async clearCartItems(cart, user) {
+    for (const cartItem of cart.items) {
+      await this.cartService.removeItemFromCart(cartItem.product._id, user);
     }
   }
 
