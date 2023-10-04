@@ -8,6 +8,7 @@ import mongoose, { Model } from 'mongoose';
 import { Cart, CartDocument } from './schema/cart.schema';
 import { Product, ProductDocument } from '../product/schema/product.schema';
 import { Item, ItemDocument } from './schema/item.schema';
+import {use} from "passport";
 
 @Injectable()
 export class CartService {
@@ -113,7 +114,7 @@ export class CartService {
       })
       .populate({
         path: 'product',
-        model: 'Product', // Replace with your actual product model name
+        model: 'Product',
       });
 
     if (!cart) {
@@ -202,5 +203,14 @@ export class CartService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  async getCartItemsByCart(cart, user) {
+    const cartItems = await this.itemModel.find({
+      cart: cart,
+      user: user._id,
+    });
+
+    return cartItems;
   }
 }

@@ -11,7 +11,6 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
-
     private readonly paymentService: PaymentService,
     private readonly cartService: CartService,
   ) {}
@@ -19,6 +18,10 @@ export class OrderService {
   async create(data, user) {
     try {
       const cart = await this.cartModel.findOne({ _id: data.cartId });
+      const cartItems = await this.cartService.getCartItemsByCart(
+        cart._id,
+        user,
+      );
 
       if (!cart) {
         throw new NotFoundException('Cart not found');
@@ -35,12 +38,16 @@ export class OrderService {
         'deliveryDetail.zipCode': data.zipCode,
       };
 
+      // Extract product IDs from cartItems
+      const productIds = cartItems.map((cartItem) => cartItem.product);
+
       const requestData = {
         amount: cart.totalPrice,
         user: user._id,
         cart: cart._id,
         status: 'pending',
         reference: await this.generateRandomCharacters(7),
+        items: productIds, // Store product IDs in the items array
       };
 
       const storageData = { ...requestData, ...deliveryData };
@@ -51,6 +58,8 @@ export class OrderService {
         order,
         nonce: data.nonce,
       };
+
+      console.log(order);
 
       /** process payment **/
       const payment = await this.paymentService.processPayment(
@@ -77,9 +86,10 @@ export class OrderService {
   }
 
   async clearCartItems(cart, user) {
-    for (const item of cart.items) {
-      // console.log(item.productId);
-      // await this.cartService.removeItemFromCart(item.productId, user);
+    const cartItems = await this.cartService.getCartItemsByCart(cart, user);
+
+    for (const item of cartItems) {
+      await this.cartService.removeItemFromCart(item.product, user);
     }
   }
 
@@ -100,9 +110,10 @@ export class OrderService {
       .skip(size * (currentPage - 1))
       .limit(size)
       .sort({ createdAt: sort })
-      .populate('cart')
-      .populate('user');
-
+      .populate({
+        path: 'items',
+        model: 'Product',
+      });
     return {
       response,
       pagination: {
@@ -128,20 +139,16 @@ export class OrderService {
       user: user._id,
       status: 'success',
     });
+
     const response = await this.orderModel
       .find({ user: user._id, status: 'success' })
       .skip(size * (currentPage - 1))
       .limit(size)
       .sort({ createdAt: sort })
-      .populate('cart')
       .populate({
-        path: 'cart',
-        populate: {
-          path: 'items.product',
-          model: 'Product',
-        },
-      })
-      .populate('user');
+        path: 'items',
+        model: 'Product',
+      });
 
     return {
       response,
