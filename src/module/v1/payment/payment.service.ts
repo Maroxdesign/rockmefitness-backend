@@ -22,17 +22,24 @@ export class PaymentService {
   }
 
   async processPayment(paymentData, user) {
+    const orderId = paymentData.order._id;
+    const paymentAmount = paymentData.order.amount;
     try {
-      const payment = await this.createPayment(paymentData, user);
+      const payment = await this.paymentModel.create({
+        amount: paymentAmount,
+        reference: paymentData.order.reference,
+        order: orderId,
+        user: user._id,
+        status: 'pending',
+      });
 
       if (!payment) {
         throw new BadRequestException('Invalid Payment');
       }
 
       const result = await this.braintreeGateway.transaction.sale({
-        amount: paymentData.amount.toString(),
-        paymentMethodNonce: paymentData.nonce ?? 'fake-valid-nonce',
-        // deviceData: paymentData,
+        amount: paymentAmount.toString(),
+        paymentMethodNonce: paymentData.nonce,
         options: {
           submitForSettlement: true,
         },
@@ -115,18 +122,6 @@ export class PaymentService {
         size,
       },
     };
-  }
-
-  async createPayment(payload, user) {
-    const data = {
-      amount: payload.amount,
-      reference: payload.reference,
-      order: payload._id,
-      user: user._id,
-      status: 'pending',
-    };
-
-    return await this.paymentModel.create(data);
   }
 
   async updatePayment(id, payload) {

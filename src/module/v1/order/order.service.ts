@@ -47,9 +47,16 @@ export class OrderService {
 
       /** create an order **/
       const order = await this.orderModel.create(storageData);
+      const sendPayload = {
+        order,
+        nonce: data.nonce,
+      };
 
       /** process payment **/
-      const payment = await this.paymentService.processPayment(order, user);
+      const payment = await this.paymentService.processPayment(
+        sendPayload,
+        user,
+      );
 
       if (payment) {
         order.status = 'success';
