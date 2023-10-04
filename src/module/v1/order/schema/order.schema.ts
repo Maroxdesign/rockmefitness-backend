@@ -25,6 +25,9 @@ export class Order {
   user?: User;
 
   @Prop()
+  items: [];
+
+  @Prop()
   status: string;
 
   @Prop({ default: {} })

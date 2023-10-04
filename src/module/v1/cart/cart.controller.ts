@@ -43,12 +43,12 @@ export class CartController {
   @ResponseMessage(QUANTITY_UPDATED)
   @Post('increase/:productId')
   async increaseQuantity(@Param('productId') productId: string, @Req() req) {
-    return await this.cartService.increaseQuantity(productId, req.user);
+    await this.cartService.increaseQuantity(productId, req.user);
   }
 
   @ResponseMessage(QUANTITY_UPDATED)
   @Post('decrease/:productId')
   async decreaseQuantity(@Param('productId') productId: string, @Req() req) {
-    return await this.cartService.decreaseQuantity(productId, req.user);
+    await this.cartService.decreaseQuantity(productId, req.user);
   }
 }

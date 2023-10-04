@@ -11,9 +11,6 @@ export type CartDocument = Cart &
 
 @Schema({ timestamps: true })
 export class Cart {
-  @Prop()
-  items: Item[];
-
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
   user?: User;
 
