@@ -69,7 +69,7 @@ export class OrderService {
 
       return {
         order,
-        payment,
+        // payment,
       };
     } catch (e) {
       throw new Error(e.message);
@@ -77,8 +77,9 @@ export class OrderService {
   }
 
   async clearCartItems(cart, user) {
-    for (const cartItem of cart.items) {
-      await this.cartService.removeItemFromCart(cartItem.product._id, user);
+    for (const item of cart.items) {
+      // console.log(item.productId);
+      // await this.cartService.removeItemFromCart(item.productId, user);
     }
   }
 
