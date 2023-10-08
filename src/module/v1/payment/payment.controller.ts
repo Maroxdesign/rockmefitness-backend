@@ -48,7 +48,13 @@ export class PaymentController {
       // Check the response to verify the payment was successful
       if (executePayment.state === 'approved') {
         // Payment was successful, you can perform further actions here
-        return res.send(executePayment);
+        return res.redirect(
+          `https://rockmefitness.vercel.app/payment/success?data=${JSON.stringify(
+            executePayment,
+          )}`,
+        );
+
+        // return res.send(JSON.stringify(executePayment));
       } else {
         return res.send('Payment failed.');
       }
@@ -61,7 +67,7 @@ export class PaymentController {
 
   @Public()
   @Get('cancel')
-  async handleCancel() {
-    return 'payment cancelled!!';
+  async handleCancel(@Res() res: Response) {
+    return res.redirect(`https://rockmefitness.vercel.app/payment/failed`);
   }
 }
