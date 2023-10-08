@@ -41,8 +41,12 @@ export class OrderService {
       // Extract product IDs from cartItems
       const productIds = cartItems.map((cartItem) => cartItem.product);
 
+      // Add tax to total price
+      const totalAmount =
+        (await this.getTax(cart.totalPrice)) + cart.totalPrice;
+
       const requestData = {
-        amount: cart.totalPrice,
+        amount: totalAmount,
         user: user._id,
         cart: cart._id,
         status: 'pending',
@@ -54,35 +58,23 @@ export class OrderService {
 
       /** create an order **/
       const order = await this.orderModel.create(storageData);
-      const sendPayload = {
-        order,
-        nonce: data.nonce,
-      };
-
-      console.log(order);
 
       /** process payment **/
-      const payment = await this.paymentService.processPayment(
-        sendPayload,
-        user,
+      const payment = await this.paymentService.createPayment(
+        order.amount,
+        order.reference,
       );
 
-      if (payment) {
-        order.status = 'success';
-        await order.save();
-        await this.clearCartItems(cart, user);
-      } else {
-        order.status = 'failed';
-        await order.save();
-      }
-
-      return {
-        order,
-        // payment,
-      };
+      return payment;
     } catch (e) {
       throw new Error(e.message);
     }
+  }
+
+  async getTax(amount) {
+    const percentage = 5;
+    const taxAmount = (amount * percentage) / 100;
+    return taxAmount;
   }
 
   async clearCartItems(cart, user) {
