@@ -91,6 +91,7 @@ export class OrderService {
       .skip(size * (currentPage - 1))
       .limit(size)
       .sort({ createdAt: sort })
+      .populate('user')
       .populate({
         path: 'items',
         model: 'Product',
@@ -126,6 +127,7 @@ export class OrderService {
       .skip(size * (currentPage - 1))
       .limit(size)
       .sort({ createdAt: sort })
+      .populate('user')
       .populate({
         path: 'items',
         model: 'Product',
