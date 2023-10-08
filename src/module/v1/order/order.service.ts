@@ -60,10 +60,7 @@ export class OrderService {
       const order = await this.orderModel.create(storageData);
 
       /** process payment **/
-      const payment = await this.paymentService.createPayment(
-        order.amount,
-        order.reference,
-      );
+      const payment = await this.paymentService.createPayment(order);
 
       return payment;
     } catch (e) {

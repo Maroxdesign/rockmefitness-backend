@@ -83,7 +83,7 @@ export class PaymentService {
     };
   }
 
-  async createPayment(amount, reference) {
+  async createPayment(order) {
     const createPaymentJson = {
       intent: 'sale',
       payer: {
@@ -100,7 +100,7 @@ export class PaymentService {
               {
                 name: 'item',
                 sku: 'item',
-                price: amount.toString(),
+                price: order.amount.toString(),
                 currency: 'USD',
                 quantity: 1,
               },
@@ -108,18 +108,26 @@ export class PaymentService {
           },
           amount: {
             currency: 'USD',
-            total: amount.toString(),
+            total: order.amount.toString(),
           },
-          description: reference,
+          description: order.reference,
         },
       ],
     };
 
     return new Promise((resolve, reject) => {
-      paypal.payment.create(createPaymentJson, (error, payment) => {
+      paypal.payment.create(createPaymentJson, async (error, payment) => {
         if (error) {
           reject(error);
         } else {
+          await this.paymentModel.create({
+            amount: order.amount,
+            txn_id: payment.id,
+            reference: order.reference,
+            order: order._id,
+            user: order.user,
+            status: 'pending',
+          });
           resolve(payment);
         }
       });
@@ -140,12 +148,20 @@ export class PaymentService {
             reject(error);
           } else {
             const reference = payment.transactions[0].description;
-            // Update the order status in your database
-            const order = await this.orderModel.findOneAndUpdate(
+            // Update the order and payment status in your database
+
+            await this.orderModel.findOneAndUpdate(
               { reference: reference },
               { status: 'success' },
               { new: true },
             );
+
+            await this.paymentModel.findOneAndUpdate(
+              { txn_id: paymentId },
+              { status: 'success' },
+              { new: true },
+            );
+
             //TODO: clear user cart from BACKEND using order object data
 
             resolve(payment);
