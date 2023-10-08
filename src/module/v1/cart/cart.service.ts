@@ -4,11 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
 import { Cart, CartDocument } from './schema/cart.schema';
 import { Product, ProductDocument } from '../product/schema/product.schema';
 import { Item, ItemDocument } from './schema/item.schema';
-import {use} from "passport";
+import { Model } from 'mongoose';
 
 @Injectable()
 export class CartService {

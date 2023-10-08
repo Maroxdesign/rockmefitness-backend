@@ -8,6 +8,7 @@ interface IEnvironment {
     PORT: number | string;
     ENV: string;
     EMAIL: string;
+    BASE_URL: string;
   };
   JWT: {
     SECRET: string;
@@ -36,10 +37,10 @@ interface IEnvironment {
     CLIENT_EMAIL: string;
   };
   SENDGRID: string;
-  BRAINTREE: {
-    MERCHANT_ID: string;
-    PRIVATE_KEY: string;
-    PUBLIC_KEY: string;
+
+  PAYPAL: {
+    CLIENT_ID: string;
+    SECRET_KEY: string;
   };
 }
 
@@ -49,6 +50,7 @@ export const environment: IEnvironment = {
     PORT: process.env.PORT,
     ENV: process.env.APP_ENV,
     EMAIL: process.env.EMAIL,
+    BASE_URL: process.env.APP_BASE_URL,
   },
   JWT: {
     SECRET: process.env.JWT_SECRET,
@@ -76,10 +78,9 @@ export const environment: IEnvironment = {
     PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
     CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
   },
-  BRAINTREE: {
-    MERCHANT_ID: process.env.BRAINTREE_MERCHANT_ID,
-    PRIVATE_KEY: process.env.BRAINTREE_PRIVATE_KEY,
-    PUBLIC_KEY: process.env.BRAINTREE_PUBLIC_KEY,
+  PAYPAL: {
+    CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
+    SECRET_KEY: process.env.PAYPAL_SECRET_KEY,
   },
   SENDGRID: process.env.SENDGRID_KEY,
 };

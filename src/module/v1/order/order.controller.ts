@@ -2,7 +2,8 @@ import { OrderService } from './order.service';
 import {
   Body,
   Controller,
-  Get, Param,
+  Get,
+  Param,
   Post,
   Query,
   Req,
@@ -13,11 +14,11 @@ import {
   CREATE_ORDER,
   DATA_FETCH,
 } from '../../../common/constants/product.constants';
-import { OrderDto } from './dto/order.dto';
 import { RoleEnum } from '../../../common/constants/user.constants';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../../../common/decorator/roles.decorator';
+import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('orders')
 export class OrderController {
@@ -27,6 +28,13 @@ export class OrderController {
   @Get('user')
   async getUserOrders(@Query() queryData, @Req() req) {
     return await this.orderService.getUserOrders(queryData, req.user);
+  }
+
+  @ResponseMessage(DATA_FETCH)
+  @Public()
+  @Get('tax/:amount')
+  async getTax(@Param('amount') amount: string) {
+    return await this.orderService.getTax(amount);
   }
 
   @ResponseMessage(DATA_FETCH)
@@ -40,7 +48,18 @@ export class OrderController {
   @ResponseMessage(CREATE_ORDER)
   @Post()
   async create(@Body() data, @Req() req) {
-    return await this.orderService.create(data, req.user);
+    try {
+      const payment = await this.orderService.create(data, req.user);
+
+      /** Redirect the user to the PayPal approval URL **/
+      const approvalUrl = payment['links'].find(
+        (link) => link.rel === 'approval_url',
+      ).href;
+
+      return { approvalUrl };
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 
   @ResponseMessage(DATA_FETCH)

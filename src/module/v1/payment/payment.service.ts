@@ -2,65 +2,23 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Payment, PaymentDocument } from './schema/payment.schema';
-import { BraintreeGateway } from 'braintree';
-
+import * as paypal from 'paypal-rest-sdk';
+import { environment } from '../../../common/config/environment';
+import { Order, OrderDocument } from '../order/schema/order.schema';
 @Injectable()
 export class PaymentService {
+  private readonly paypalConfig: any;
+
   constructor(
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
-    @Inject('BraintreeGateway')
-    private readonly braintreeGateway: BraintreeGateway,
-  ) {}
-
-  async generateClientToken() {
-    try {
-      const response = await this.braintreeGateway.clientToken.generate();
-      return { clientToken: response.clientToken };
-    } catch (error) {
-      throw new Error('Failed to generate client token');
-    }
-  }
-
-  async processPayment(paymentData, user) {
-    const orderId = paymentData.order._id;
-    const paymentAmount = paymentData.order.amount;
-
-    try {
-      const payment = await this.paymentModel.create({
-        amount: paymentAmount,
-        reference: paymentData.order.reference,
-        order: orderId,
-        user: user._id,
-        status: 'pending',
-      });
-
-      if (!payment) {
-        throw new BadRequestException('Invalid Payment');
-      }
-
-      const result = await this.braintreeGateway.transaction.sale({
-        amount: paymentAmount.toString(),
-        paymentMethodNonce: paymentData.nonce ?? 'fake-valid-nonce',
-        options: {
-          submitForSettlement: true,
-        },
-      });
-
-      if (result.success) {
-        await this.updatePayment(payment._id, {
-          status: result.transaction.status,
-        });
-
-        return {
-          message: 'Payment successful',
-          data: result.transaction,
-        };
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+  ) {
+    this.paypalConfig = {
+      mode: 'sandbox',
+      client_id: environment.PAYPAL.CLIENT_ID,
+      client_secret: environment.PAYPAL.SECRET_KEY,
+    };
+    paypal.configure(this.paypalConfig);
   }
 
   async paginate(query: any) {
@@ -125,11 +83,77 @@ export class PaymentService {
     };
   }
 
-  async updatePayment(id, payload) {
-    return await this.paymentModel.findByIdAndUpdate(
-      id,
-      { status: payload.status, ...payload },
-      { new: true },
-    );
+  async createPayment(amount, reference) {
+    const createPaymentJson = {
+      intent: 'sale',
+      payer: {
+        payment_method: 'paypal',
+      },
+      redirect_urls: {
+        return_url: `${environment.APP.BASE_URL}/payment/success`,
+        cancel_url: `${environment.APP.BASE_URL}/payment/cancel`,
+      },
+      transactions: [
+        {
+          item_list: {
+            items: [
+              {
+                name: 'item',
+                sku: 'item',
+                price: amount.toString(),
+                currency: 'USD',
+                quantity: 1,
+              },
+            ],
+          },
+          amount: {
+            currency: 'USD',
+            total: amount.toString(),
+          },
+          description: reference,
+        },
+      ],
+    };
+
+    return new Promise((resolve, reject) => {
+      paypal.payment.create(createPaymentJson, (error, payment) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(payment);
+        }
+      });
+    });
+  }
+
+  async executePayment(paymentId: string, payerId: string) {
+    const executePaymentJson = {
+      payer_id: payerId,
+    };
+
+    return new Promise((resolve, reject) => {
+      paypal.payment.execute(
+        paymentId,
+        executePaymentJson,
+        async (error, payment) => {
+          if (error) {
+            reject(error);
+          } else {
+            const reference = payment.transactions[0].description;
+            // Update the order status in your database
+            const order = await this.orderModel.findOneAndUpdate(
+              { reference: reference },
+              { status: 'success' },
+              { new: true },
+            );
+            //TODO: clear user cart from BACKEND using order object data
+
+            resolve(payment);
+
+            return payment;
+          }
+        },
+      );
+    });
   }
 }

@@ -3,25 +3,16 @@ import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Payment, PaymentSchema } from './schema/payment.schema';
-import * as braintree from 'braintree';
-import { environment } from '../../../common/config/environment';
+import { Order, OrderSchema } from '../order/schema/order.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
+    MongooseModule.forFeature([
+      { name: Payment.name, schema: PaymentSchema },
+      { name: Order.name, schema: OrderSchema },
+    ]),
   ],
-  providers: [
-    PaymentService,
-    {
-      provide: 'BraintreeGateway',
-      useValue: new braintree.BraintreeGateway({
-        environment: braintree.Environment.Sandbox,
-        merchantId: environment.BRAINTREE.MERCHANT_ID,
-        publicKey: environment.BRAINTREE.PUBLIC_KEY,
-        privateKey: environment.BRAINTREE.PRIVATE_KEY,
-      }),
-    },
-  ],
+  providers: [PaymentService],
   controllers: [PaymentController],
   exports: [PaymentService],
 })
