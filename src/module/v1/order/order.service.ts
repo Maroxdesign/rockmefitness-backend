@@ -74,14 +74,6 @@ export class OrderService {
     return taxAmount;
   }
 
-  async clearCartItems(cart, user) {
-    const cartItems = await this.cartService.getCartItemsByCart(cart, user);
-
-    for (const item of cartItems) {
-      await this.cartService.removeItemFromCart(item.product, user);
-    }
-  }
-
   async paginate(query: any) {
     let { currentPage, size, sort } = query;
 
