@@ -15,14 +15,31 @@ export class ProductService {
     private readonly spacesService: SpacesService,
   ) {}
 
-  async create(requestData, files) {
-    const [imageUrl] = await Promise.all([
-      this.spacesService.uploadFile(files?.image?.length > 0 && files.image[0]),
-    ]);
-    return await this.productModel.create({
-      image: imageUrl,
-      ...requestData,
-    });
+  async create(requestData, images) {
+    const imageUrls = await Promise.all(
+      images.map(async (image) => {
+        return this.spacesService.uploadFile(image);
+      }),
+    );
+
+    const { sizes, colors } = requestData;
+    const price = parseFloat(requestData.price);
+    const quantity = parseInt(requestData.quantity);
+
+    const productData = {
+      name: requestData.name,
+      description: requestData.description,
+      productDetails: requestData.productDetails,
+      colors: colors,
+      tags: requestData.tags,
+      price: price,
+      image: imageUrls,
+      sizes: sizes,
+      quantity: quantity,
+      category: requestData.category,
+    };
+
+    return await this.productModel.create(productData);
   }
 
   async paginate(query: any) {
@@ -67,18 +84,25 @@ export class ProductService {
 
   async update(id, requestData, files) {
     try {
-      const [imageUrl] = await Promise.all([
-        this.spacesService.uploadFile(
-          files?.image?.length > 0 && files.image[0],
-        ),
-      ]);
+      let imageUrls = [];
+
+      if (files?.image?.length > 0) {
+        imageUrls = await Promise.all(
+          files.image.map(async (image) => {
+            return this.spacesService.uploadFile(image);
+          }),
+        );
+      }
+
+      // Construct the updated product data
+      const updatedData = {
+        ...(imageUrls.length > 0 && { image: imageUrls[0] }), // Update the image URL if a new image is uploaded
+        ...requestData,
+      };
 
       const product = await this.productModel.findByIdAndUpdate(
         id,
-        {
-          image: imageUrl,
-          ...requestData,
-        },
+        updatedData,
         {
           new: true,
         },

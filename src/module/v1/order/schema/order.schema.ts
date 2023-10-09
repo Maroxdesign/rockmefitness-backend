@@ -28,6 +28,12 @@ export class Order {
   items: [];
 
   @Prop()
+  sizes: [];
+
+  @Prop()
+  colors: [];
+
+  @Prop()
   status: string;
 
   @Prop({ default: {} })

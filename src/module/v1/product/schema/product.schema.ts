@@ -21,7 +21,7 @@ export class Product {
   productDetails: string;
 
   @Prop()
-  color: string;
+  colors: [];
 
   @Prop()
   tags: string;
@@ -30,10 +30,10 @@ export class Product {
   price: number;
 
   @Prop()
-  image: string;
+  image: [];
 
   @Prop()
-  size: string;
+  sizes: [];
 
   @Prop()
   quantity: number;
