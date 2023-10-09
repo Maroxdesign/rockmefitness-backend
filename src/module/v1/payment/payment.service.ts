@@ -5,6 +5,7 @@ import { Payment, PaymentDocument } from './schema/payment.schema';
 import * as paypal from 'paypal-rest-sdk';
 import { environment } from '../../../common/config/environment';
 import { Order, OrderDocument } from '../order/schema/order.schema';
+import { Product, ProductDocument } from '../product/schema/product.schema';
 @Injectable()
 export class PaymentService {
   private readonly paypalConfig: any;
@@ -12,6 +13,7 @@ export class PaymentService {
   constructor(
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {
     this.paypalConfig = {
       mode: 'sandbox',
@@ -150,7 +152,7 @@ export class PaymentService {
             const reference = payment.transactions[0].description;
             // Update the order and payment status in your database
 
-            await this.orderModel.findOneAndUpdate(
+            const order = await this.orderModel.findOneAndUpdate(
               { reference: reference },
               { status: 'success' },
               { new: true },
@@ -161,6 +163,25 @@ export class PaymentService {
               { status: 'success' },
               { new: true },
             );
+
+            // Loop through order items and update product quantities
+            for (const item of order.items) {
+              const product = await this.productModel.findOne({
+                _id: item,
+              });
+
+              if (product) {
+                // Calculate the new quantity by subtracting the ordered quantity
+                const newQuantity = product.quantity - order.quantity;
+
+                // Update the product quantity in the database
+                await this.productModel.findOneAndUpdate(
+                  { _id: item },
+                  { quantity: newQuantity },
+                  { new: true },
+                );
+              }
+            }
 
             //TODO: clear user cart from BACKEND using order object data
 
