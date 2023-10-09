@@ -14,6 +14,9 @@ export class Item {
   quantity: number;
 
   @Prop()
+  varieties: [];
+
+  @Prop()
   subTotalPrice: number;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Cart.name })

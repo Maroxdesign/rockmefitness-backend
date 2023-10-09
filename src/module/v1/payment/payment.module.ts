@@ -4,12 +4,14 @@ import { PaymentController } from './payment.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Payment, PaymentSchema } from './schema/payment.schema';
 import { Order, OrderSchema } from '../order/schema/order.schema';
+import { Product, ProductSchema } from '../product/schema/product.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Payment.name, schema: PaymentSchema },
       { name: Order.name, schema: OrderSchema },
+      { name: Product.name, schema: ProductSchema },
     ]),
   ],
   providers: [PaymentService],

@@ -40,6 +40,8 @@ export class OrderService {
 
       // Extract product IDs from cartItems
       const productIds = cartItems.map((cartItem) => cartItem.product);
+      const varieties = cartItems.map((cartItem) => cartItem.varieties);
+      const quantity = cartItems.map((cartItem) => cartItem.quantity);
 
       // Add tax to total price
       const totalAmount =
@@ -52,6 +54,8 @@ export class OrderService {
         status: 'pending',
         reference: await this.generateRandomCharacters(7),
         items: productIds, // Store product IDs in the items array
+        varieties: varieties,
+        quantity: quantity[0],
       };
 
       const storageData = { ...requestData, ...deliveryData };
@@ -59,7 +63,7 @@ export class OrderService {
       /** create an order **/
       const order = await this.orderModel.create(storageData);
 
-      /** process payment **/
+      // /** process payment **/
       const payment = await this.paymentService.createPayment(order);
 
       return payment;
