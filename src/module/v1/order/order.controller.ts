@@ -49,10 +49,9 @@ export class OrderController {
   @Post()
   async create(@Body() data, @Req() req) {
     try {
-      const payment = await this.orderService.create(data, req.user);
-
+      const order = await this.orderService.create(data, req.user);
       /** Redirect the user to the PayPal approval URL **/
-      const approvalUrl = payment['links'].find(
+      const approvalUrl = order['links'].find(
         (link) => link.rel === 'approval_url',
       ).href;
 

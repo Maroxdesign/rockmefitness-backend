@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString } from 'class-validator';
 
 export class ItemDTO {
   @IsString()
@@ -6,4 +6,7 @@ export class ItemDTO {
 
   @IsNumber()
   quantity: number;
+
+  @IsArray()
+  varieties: [];
 }

@@ -22,11 +22,7 @@ import { RoleEnum } from '../../../common/constants/user.constants';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { ProductDto } from './dto/product.dto';
-import {
-  FileFieldsInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('product')
