@@ -23,25 +23,25 @@ import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../../../common/decorator/roles.decorator';
 import { ProductDto } from './dto/product.dto';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
   @ResponseMessage(PRODUCT_CREATED)
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
+  @UseInterceptors(FilesInterceptor('images'))
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   async create(
-    @Body() requestData: ProductDto,
-    @UploadedFiles()
-    files: {
-      image?: Express.Multer.File[];
-    },
+    @Body() requestData,
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ) {
-    return await this.productService.create(requestData, files);
+    return await this.productService.create(requestData, images);
   }
 
   @Public()
@@ -63,16 +63,13 @@ export class ProductController {
   }
 
   @ResponseMessage(PRODUCT_UPDATED)
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'image', maxCount: 1 }]))
+  @UseInterceptors(FilesInterceptor('images'))
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() requestData,
-    @UploadedFiles()
-    files: {
-      image?: Express.Multer.File[];
-    },
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ) {
-    return await this.productService.update(id, requestData, files);
+    return await this.productService.update(id, requestData, images);
   }
 }
