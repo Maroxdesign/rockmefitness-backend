@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { TransformationInterceptor } from './common/interceptor/response.interceptor';
 import { TimeoutInterceptor } from './common/interceptor/timeout.interceptor';
 import { HttpExceptionFilter } from './common/filter/filter';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+// import { IoAdapter } from '@nestjs/platform-socket.io';
 import { config } from 'dotenv';
 config();
 
@@ -15,7 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
   app.use(helmet());
-  app.useWebSocketAdapter(new IoAdapter(app));
+  // app.useWebSocketAdapter(new IoAdapter(app));
   // app.use(express.json({ limit: '50mb' }));
   // app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
