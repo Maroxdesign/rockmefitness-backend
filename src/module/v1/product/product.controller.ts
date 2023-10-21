@@ -72,7 +72,7 @@ export class ProductController {
 
   @Public()
   @ResponseMessage(DATA_FETCH)
-  @Get('product/test')
+  @Get('/test/route')
   async testMethod() {
     return 'Nothing happens here';
   }
