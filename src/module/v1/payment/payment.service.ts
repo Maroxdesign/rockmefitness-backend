@@ -16,9 +16,9 @@ export class PaymentService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {
     this.paypalConfig = {
-      mode: 'sandbox',
       client_id: environment.PAYPAL.CLIENT_ID,
       client_secret: environment.PAYPAL.SECRET_KEY,
+      mode: environment.PAYPAL.MODE,
     };
     paypal.configure(this.paypalConfig);
   }

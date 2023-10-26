@@ -41,6 +41,7 @@ interface IEnvironment {
   PAYPAL: {
     CLIENT_ID: string;
     SECRET_KEY: string;
+    MODE: string;
   };
 }
 
@@ -81,6 +82,7 @@ export const environment: IEnvironment = {
   PAYPAL: {
     CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
     SECRET_KEY: process.env.PAYPAL_SECRET_KEY,
+    MODE: process.env.PAYPAL_MODE,
   },
   SENDGRID: process.env.SENDGRID_KEY,
 };
