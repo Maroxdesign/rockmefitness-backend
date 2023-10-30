@@ -55,6 +55,8 @@ export class OrderController {
         (link) => link.rel === 'approval_url',
       ).href;
 
+      console.log(approvalUrl);
+
       return { approvalUrl };
     } catch (error) {
       throw new Error(error.message);
