@@ -7,6 +7,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schema/product.schema';
 import { SpacesService } from '../spaces/spaces.service';
+import { Variant } from './schema/variant.schema';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ProductService {
@@ -15,31 +17,55 @@ export class ProductService {
     private readonly spacesService: SpacesService,
   ) {}
 
-  async create(requestData, images) {
-    const imageUrls = await Promise.all(
-      images.map(async (image) => {
-        return this.spacesService.uploadFile(image);
-      }),
-    );
+  async create(requestData, files: any) {
+    const imageUrl = files?.image
+      ? await this.spacesService.uploadFile(files.image[0])
+      : undefined;
 
-    const { sizes, colors } = requestData;
-    const price = parseFloat(requestData.price);
-    const quantity = parseInt(requestData.quantity);
+    const variantData = {
+      color: requestData.color,
+      price: parseFloat(requestData.price),
+      image: imageUrl,
+      size: requestData.size,
+      _id: uuidv4(),
+    };
 
     const productData = {
       name: requestData.name,
       description: requestData.description,
       productDetails: requestData.productDetails,
-      colors: colors,
       tags: requestData.tags,
-      price: price,
-      image: imageUrls,
-      sizes: sizes,
-      quantity: quantity,
+      quantity: requestData.quantity,
       category: requestData.category,
+      variants: [variantData],
     };
 
     return await this.productModel.create(productData);
+  }
+
+  async addVariants(productId, requestData, files: any) {
+    const product = await this.productModel.findById(productId);
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    let imageUrl = null;
+
+    if (files?.image) {
+      imageUrl = await this.spacesService.uploadFile(files.image[0]);
+    }
+
+    const variantData = {
+      _id: uuidv4(),
+      color: requestData.color,
+      price: parseFloat(requestData.price),
+      image: imageUrl,
+      size: requestData.size,
+    };
+
+    product.variants.push(variantData as Variant); // Type assertion to Variant
+    return await product.save();
   }
 
   async paginate(query: any) {
@@ -70,52 +96,23 @@ export class ProductService {
     };
   }
 
-  async delete(id) {
-    const product = await this.productModel.findByIdAndDelete({
-      _id: id,
-    });
+  async deleteVariant(productId: string, variantId: string): Promise<Product> {
+    const product = await this.productModel.findById(productId);
 
     if (!product) {
-      throw new NotFoundException('Product not found');
+      throw new Error('Product not found');
     }
 
-    return;
-  }
+    // Filter out the variant with the matching _id
+    const updatedVariants = product.variants.filter(
+      (variant) => variant._id.toString() !== variantId,
+    );
 
-  async update(id, requestData, files) {
-    try {
-      let imageUrls = [];
+    // Update product's variants with the filtered variants
+    product.variants = updatedVariants;
 
-      if (files?.image?.length > 0) {
-        imageUrls = await Promise.all(
-          files.image.map(async (image) => {
-            return this.spacesService.uploadFile(image);
-          }),
-        );
-      }
-
-      // Construct the updated product data
-      const updatedData = {
-        ...(imageUrls.length > 0 && { image: imageUrls[0] }), // Update the image URL if a new image is uploaded
-        ...requestData,
-      };
-
-      const product = await this.productModel.findByIdAndUpdate(
-        id,
-        updatedData,
-        {
-          new: true,
-        },
-      );
-
-      if (!product) {
-        throw new NotFoundException('Product not found');
-      }
-
-      return product;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
+    // Save and return the updated product
+    return await product.save();
   }
 
   async getSingleProduct(id) {
@@ -128,5 +125,73 @@ export class ProductService {
     }
 
     return product;
+  }
+
+  async update(id, requestData) {
+    try {
+      const product = await this.productModel.findByIdAndUpdate(
+        id,
+        requestData,
+        {
+          new: true,
+        },
+      );
+
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      return await product;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async delete(id) {
+    const product = await this.productModel.findByIdAndDelete({
+      _id: id,
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return;
+  }
+
+  async updateVariant(productId, variantId, requestData, files) {
+    const { color, price, size } = requestData;
+
+    const product = await this.productModel.findById(productId);
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    const [imageUrl] = await Promise.all([
+      this.spacesService.uploadFile(files?.image?.[0]),
+    ]);
+
+    const dataToUpdate: any = {};
+    if (imageUrl) dataToUpdate['variants.$.image'] = imageUrl;
+    if (color) dataToUpdate['variants.$.color'] = color;
+    if (price) dataToUpdate['variants.$.price'] = price;
+    if (size) dataToUpdate['variants.$.size'] = size;
+
+    try {
+      const updatedVariant = await this.productModel.findOneAndUpdate(
+        { 'variants._id': variantId },
+        { $set: dataToUpdate },
+        { new: true },
+      );
+
+      if (!updatedVariant) {
+        throw new NotFoundException('Variant not found');
+      }
+
+      return updatedVariant;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

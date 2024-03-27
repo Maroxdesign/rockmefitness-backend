@@ -1,6 +1,9 @@
 export const PRODUCT_CREATED = 'Product Created';
 export const PRODUCT_UPDATED = 'Product Updated';
 export const PRODUCT_DELETED = 'Product Deleted';
+export const VARIANT_ADDED = 'Variant Added';
+export const VARIANT_UPDATED = 'Variant Updated';
+export const VARIANT_DELETED = 'Variant Deleted';
 
 export const CART_PRODUCT_CREATED = 'Product added to cart successfully';
 export const CART_PRODUCT_REMOVED = 'Product removed from cart successfully';
