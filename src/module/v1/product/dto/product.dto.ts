@@ -19,9 +19,6 @@ export class ProductDto {
   @IsString()
   category: string;
 
-  @IsArray()
-  size: [];
-
   @IsNumberString()
   price: number;
 
