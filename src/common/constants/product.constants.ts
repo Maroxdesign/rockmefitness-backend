@@ -11,7 +11,9 @@ export const DATA_FETCH = 'Data fetch successfully';
 
 export const CREATE_ORDER = 'Order created successfully';
 
-export const QUANTITY_UPDATED = 'Quantity updated successfully';
+export const QUANTITY_INCREASED = 'Quantity increased successfully';
+export const QUANTITY_DECREASED = 'Quantity decreased successfully';
+
 
 // video
 export const VIDEO_DELETED = 'Video deleted successfully';
