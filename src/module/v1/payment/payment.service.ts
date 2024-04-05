@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Payment, PaymentDocument } from './schema/payment.schema';
@@ -6,6 +6,8 @@ import * as paypal from 'paypal-rest-sdk';
 import { environment } from '../../../common/config/environment';
 import { Order, OrderDocument } from '../order/schema/order.schema';
 import { Product, ProductDocument } from '../product/schema/product.schema';
+import { Cart, CartDocument } from '../cart/schema/cart.schema';
+import { StatusEnum } from '../../../common/constants/transaction.constants';
 @Injectable()
 export class PaymentService {
   private readonly paypalConfig: any;
@@ -14,6 +16,7 @@ export class PaymentService {
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
   ) {
     this.paypalConfig = {
       client_id: environment.PAYPAL.CLIENT_ID,
@@ -86,14 +89,23 @@ export class PaymentService {
   }
 
   async createPayment(order) {
+    await this.paymentModel.create({
+      amount: order.amount,
+      txn_id: order._id,
+      reference: order.reference,
+      order: order._id,
+      user: order.user,
+      status: 'pending',
+    });
+
     const createPaymentJson = {
       intent: 'sale',
       payer: {
         payment_method: 'paypal',
       },
       redirect_urls: {
-        return_url: `${environment.APP.BASE_URL}/payment/success`,
-        cancel_url: `${environment.APP.BASE_URL}/payment/cancel`,
+        return_url: `${process.env.FRONTEND_BASE_URL}/payment/success`,
+        cancel_url: `${process.env.FRONTEND_BASE_URL}/payment/cancel`,
       },
       transactions: [
         {
@@ -122,14 +134,6 @@ export class PaymentService {
         if (error) {
           reject(error);
         } else {
-          await this.paymentModel.create({
-            amount: order.amount,
-            txn_id: payment.id,
-            reference: order.reference,
-            order: order._id,
-            user: order.user,
-            status: 'pending',
-          });
           resolve(payment);
         }
       });
@@ -152,42 +156,37 @@ export class PaymentService {
             const reference = payment.transactions[0].description;
             // Update the order and payment status in your database
 
-            const order = await this.orderModel.findOneAndUpdate(
+            // find payment with supplied reference in the database
+            const paymentExist = await this.paymentModel.findOne({
+              reference: reference,
+            });
+
+            if (!paymentExist) {
+              throw new NotFoundException(
+                'Payment with supplied reference not found',
+              );
+            }
+
+            paymentExist.status = StatusEnum.SUCCESS;
+            await paymentExist.save();
+
+            await this.orderModel.findOneAndUpdate(
               { reference: reference },
               { status: 'success' },
               { new: true },
             );
 
-            await this.paymentModel.findOneAndUpdate(
-              { txn_id: paymentId },
-              { status: 'success' },
-              { new: true },
-            );
-
-            // Loop through order items and update product quantities
-            for (const item of order.items) {
-              const product = await this.productModel.findOne({
-                _id: item,
-              });
-
-              if (product) {
-                // Calculate the new quantity by subtracting the ordered quantity
-                const newQuantity = product.quantity - order.quantity;
-
-                // Update the product quantity in the database
-                await this.productModel.findOneAndUpdate(
-                  { _id: item },
-                  { quantity: newQuantity },
-                  { new: true },
-                );
-              }
-            }
-
             //TODO: clear user cart from BACKEND using order object data
+            const userCart = await this.cartModel.findOne({
+              user: paymentExist.user,
+            });
+            // Remove all items from the cart
+            userCart.cartItems = [];
 
-            resolve(payment);
+            // Save the updated cart
+            await userCart.save();
 
-            return payment;
+            resolve(paymentExist);
           }
         },
       );

@@ -7,7 +7,8 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../../../common/decorator/roles.decorator';
 import { RoleEnum } from '../../../common/constants/user.constants';
 import { Request, Response } from 'express';
-import { Public } from '../../../common/decorator/public.decorator'; // Import Express types
+import { Public } from '../../../common/decorator/public.decorator';
+import { StatusEnum } from '../../../common/constants/transaction.constants'; // Import Express types
 
 @Controller('payment')
 export class PaymentController {
@@ -28,7 +29,7 @@ export class PaymentController {
   }
 
   @Public()
-  @Get('success')
+  @Get('paypal/verify')
   async handleSuccess(@Req() req: Request, @Res() res: Response) {
     const paymentId = req.query.paymentId as string | undefined;
     const payerId = req.query.PayerID as string | undefined;
@@ -40,24 +41,30 @@ export class PaymentController {
 
     try {
       // Execute the payment with the paymentId and PayerID
-      const executePayment: any = await this.paymentService.executePayment(
+      const updatedPayment: any = await this.paymentService.executePayment(
         paymentId,
         payerId,
       );
 
-      // Check the response to verify the payment was successful
-      if (executePayment.state === 'approved') {
-        // Payment was successful, you can perform further actions here
-        return res.redirect(
-          `https://rockmefitness.vercel.app/payment/success?data=${JSON.stringify(
-            executePayment,
-          )}`,
-        );
-
-        // return res.send(JSON.stringify(executePayment));
+      if (updatedPayment.status === StatusEnum.SUCCESS) {
+        return res.send(JSON.stringify(updatedPayment));
       } else {
         return res.send('Payment failed.');
       }
+
+      // Check the response to verify the payment was successful
+      // if (executePayment.state === 'approved') {
+      //   // Payment was successful, you can perform further actions here
+      //   return res.redirect(
+      //     `https://rockmefitness.vercel.app/payment/success?data=${JSON.stringify(
+      //       executePayment,
+      //     )}`,
+      //   );
+      //
+      //   // return res.send(JSON.stringify(executePayment));
+      // } else {
+      //   return res.send('Payment failed.');
+      // }
     } catch (error) {
       return res
         .status(500)
