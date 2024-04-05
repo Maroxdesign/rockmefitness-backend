@@ -17,7 +17,6 @@ import {
   QUANTITY_DECREASED,
   QUANTITY_INCREASED,
 } from '../../../common/constants/product.constants';
-import { Public } from '../../../common/decorator/public.decorator';
 
 @Controller('cart')
 export class CartController {

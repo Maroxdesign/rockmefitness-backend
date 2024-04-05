@@ -18,20 +18,11 @@ export class Order {
   @Prop()
   reference: string;
 
-  @Prop()
-  quantity: number;
-
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Cart.name })
   cart?: Cart;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
   user?: User;
-
-  @Prop()
-  items: [];
-
-  @Prop()
-  varieties: [];
 
   @Prop()
   status: string;
