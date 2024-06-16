@@ -134,8 +134,8 @@ export class OrderService {
       .skip(size * (currentPage - 1))
       .limit(size)
       .sort({ createdAt: sort })
-      .populate('user')
-      .populate('cart');
+      .populate('cart')
+      .populate('user');
 
     return {
       response,
